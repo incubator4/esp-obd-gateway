@@ -1,0 +1,32 @@
+# lib/
+
+PlatformIO 将 `lib/<name>/` 下每个顶层目录识别为一个库，子目录仅用于组织代码。
+
+## 目录结构
+
+```
+lib/
+├── transport/              # 无线传输（ESP-NOW）
+│   ├── transport.h         # 总入口
+│   ├── crc/
+│   ├── packet/
+│   └── espnow/
+│
+└── obd/                    # OBD 协议栈
+    ├── obd.h               # 总入口（采集 + 驱动）
+    ├── driver.h            # 仅 CAN / ISO-TP / 诊断
+    ├── bus/                # ISO 11898 TWAI
+    ├── link/               # ISO 15765-2 ISO-TP
+    ├── diag/               # SAE J1979
+    └── service/            # PID 读取、轮询、单位换算
+```
+
+业务协议（`ObdPacket`、`ObdTelemetry` 等）在 `include/protocol.h`。
+
+## 引用方式
+
+```cpp
+#include "obd.h"         // 网关：CAN + 采集
+#include "driver.h"      // 仅需底层驱动时
+#include "transport.h"   // ESP-NOW 收发
+```
