@@ -22,13 +22,17 @@ bool ObdCollector::poll(uint32_t now_ms) {
     last_poll_ms_ = now_ms;
     ++poll_count_;
 
+    uint8_t valid_mask = 0;
     for (const uint8_t pid : kPidList) {
         ObdPidRaw raw{};
         if (obd_.readPid(pid, raw) != ObdError::Ok) {
             continue;
         }
-        applyPidToTelemetry(pid, raw.bytes, raw.len, telem_);
+        if (applyPidToTelemetry(pid, raw.bytes, raw.len, telem_)) {
+            valid_mask |= telemValidBitForPid(pid);
+        }
     }
+    telem_.valid_mask = valid_mask;
 
     refreshFlags(now_ms);
     return true;
@@ -42,10 +46,10 @@ void ObdCollector::refreshFlags(uint32_t now_ms) {
 
     telem_.flags = 0;
     if (obd_connected) {
-        telem_.flags |= 0x01;
+        telem_.flags |= TELEM_FLAG_OBD_CONNECTED;
     }
     if (can_ok) {
-        telem_.flags |= 0x02;
+        telem_.flags |= TELEM_FLAG_CAN_OK;
     }
 }
 

@@ -64,8 +64,8 @@ void updateFooterStatus(lv_obj_t* footer_label, const ObdTelemetry* telem, bool 
     const char* obd = "OBD --";
     uint32_t obd_color = 0x666666;
     if (!stale && telem != nullptr) {
-        const bool connected = (telem->flags & 0x01) != 0;
-        const bool can_ok = (telem->flags & 0x02) != 0;
+        const bool connected = (telem->flags & TELEM_FLAG_OBD_CONNECTED) != 0;
+        const bool can_ok = (telem->flags & TELEM_FLAG_CAN_OK) != 0;
         if (connected && can_ok) {
             obd = "OBD OK";
             obd_color = 0x00D4AA;
