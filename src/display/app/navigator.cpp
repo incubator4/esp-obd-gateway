@@ -1,5 +1,6 @@
 #include "app/navigator.h"
 #include "app/screen.h"
+#include "app/screen_store.h"
 #include "core/input.h"
 
 #include <Arduino.h>
@@ -51,6 +52,31 @@ bool Navigator::show(ScreenId id) {
         current_->onExit();
     }
     current_ = next;
+    current_->onEnter();
+    lv_refr_now(nullptr);
+    screenStoreSave(id);
+    return true;
+}
+
+bool Navigator::restoreSavedScreen() {
+    ScreenId saved = ScreenId::Rpm;
+    if (!screenStoreLoad(saved)) {
+        return false;
+    }
+    Screen* screen = find(saved);
+    if (screen == nullptr) {
+        Serial.printf("[NAV] saved screen id 0x%02X not registered, using default\n",
+                      static_cast<unsigned>(static_cast<uint8_t>(saved)));
+        return false;
+    }
+    if (current_ == screen) {
+        return true;
+    }
+    Serial.printf("[NAV] restore screen %s\n", screen->title());
+    if (current_ != nullptr) {
+        current_->onExit();
+    }
+    current_ = screen;
     current_->onEnter();
     lv_refr_now(nullptr);
     return true;

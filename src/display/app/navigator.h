@@ -22,6 +22,9 @@ public:
     void next();
     void prev();
 
+    /** Restore last screen from NVS if registered; no-op if unset or invalid. */
+    bool restoreSavedScreen();
+
     Screen* current() { return current_; }
     size_t count() const { return count_; }
 

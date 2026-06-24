@@ -67,6 +67,7 @@ void setup() {
 #elif defined(DISPLAY_BOARD_S3_TOUCH_169)
     ui::registerS3Screens(g_nav, g_panel->size());
 #endif
+    g_nav.restoreSavedScreen();
 
     obd::EspNowConfig esp_cfg{};
     esp_cfg.channel = DISP_ESPNOW_CHANNEL;
