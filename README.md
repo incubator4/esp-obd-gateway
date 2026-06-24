@@ -1,6 +1,6 @@
 # esp-obd-gateway
 
-ESP32 汽车 OBD-II 数据网关：4D Systems GEN4 ESP32-S3 从 CAN 读数据，经 **ESP-NOW** 发到 **ESP32-C6 + ST7789V2** 显示端，用 **LVGL** 绘制界面。
+ESP32 汽车 OBD-II 数据网关：网关从 CAN 读数据，经 **ESP-NOW** 发到 Waveshare 显示板，用 **LVGL** 绘制界面。
 
 ## 架构
 
@@ -15,7 +15,8 @@ ESP32 汽车 OBD-II 数据网关：4D Systems GEN4 ESP32-S3 从 CAN 读数据，
 | 环境      | 板型                            | 职责                            |
 | --------- | ------------------------------- | ------------------------------- |
 | `gateway` | `4d_systems_esp32s3_gen4_r8n16` | CAN 收发、OBD PID、ESP-NOW 广播 |
-| `display` | `esp32-c6-devkitm-1` + ST7789V2 | ESP-NOW 接收、SPI 屏 + LVGL     |
+| `display_c6` | Waveshare ESP32-C6-LCD-1.3 | ESP-NOW、240×240、BOOT 切屏 |
+| `display_s3` | Waveshare ESP32-S3-Touch-LCD-1.69 | 触摸、IMU 姿态屏、ESP-NOW |
 
 ## 硬件接线
 
@@ -25,34 +26,29 @@ ESP32 汽车 OBD-II 数据网关：4D Systems GEN4 ESP32-S3 从 CAN 读数据，
 - 默认 TWAI：`GPIO17` = TX，`GPIO18` = RX（见 `include/config_gateway.h`）
 - OBD-II 500 kbps（老车可改 250 kbps）
 
-### Display（ESP32-C6 + 板载 ST7789V2）
+### Display（Waveshare）
 
-默认 SPI 引脚（`include/config_display.h`，按原理图修改）：
+| 板型 | 环境 | 分辨率 | 输入 |
+|------|------|--------|------|
+| [ESP32-C6-LCD-1.3](https://docs.waveshare.com/ESP32-C6-LCD-1.3) | `display_c6` | 240×240 | BOOT 切屏 |
+| [ESP32-S3-Touch-LCD-1.69](https://docs.waveshare.com/ESP32-S3-Touch-LCD-1.69) | `display_s3` | 240×280 | 触摸 + PWR/BOOT |
 
-| 信号 | GPIO                     |
-| ---- | ------------------------ |
-| MOSI | 4                        |
-| SCLK | 5                        |
-| DC   | 6                        |
-| CS   | 7                        |
-| RST  | 14                       |
-| BL   | 15（LOW = 亮，反相背光） |
-
-分辨率：物理 170×320，UI 横屏 **320×170**。
+引脚见 `include/config_display_c6.h` / `config_display_s3.h`。
 
 ## 构建
 
 ```bash
-pio run -e gateway    # 刷到 4D GEN4-S3 网关
-pio run -e display    # 刷到 ESP32-C6 显示端
+pio run -e gateway       # 刷到 4D GEN4-S3 网关
+pio run -e display_c6    # Waveshare C6-LCD-1.3
+pio run -e display_s3    # Waveshare S3-Touch-LCD-1.69
 ```
 
-Display 环境使用 **ESP-IDF**（PlatformIO 官方支持 C6）。若需 Arduino，需自行安装 Arduino-ESP32 3.x 工具链。
+显示端使用 **Arduino** 框架（两块 Waveshare 板均官方支持）。
 
 ## 配置
 
 - 网关 CAN / ESP-NOW：`include/config_gateway.h`
-- 显示 SPI / ESP-NOW：`include/config_display.h`
+- 显示板配置：`include/config_display_c6.h` / `config_display_s3.h`
 - 协议定义：`include/protocol.h`
 
 ## 数据协议
@@ -68,10 +64,17 @@ Display 环境使用 **ESP-IDF**（PlatformIO 官方支持 C6）。若需 Arduin
 
 ## 库目录
 
-见 [`lib/README`](lib/README)。简要结构：
+见 [`lib/README`](lib/README)。显示层详细说明：
+
+- HAL：[`lib/display/README.md`](lib/display/README.md)
+- UI：[`src/display/README.md`](src/display/README.md)
+
+简要结构：
 
 ```
-lib/transport/   ESP-NOW 传输（crc / packet / espnow）
-lib/obd/         CAN → ISO-TP → 诊断 → 采集
+lib/transport/   ESP-NOW 传输
+lib/obd/         CAN → 采集
+lib/display/     面板 / 输入 / 板载特性（IMU）
+src/display/     UI 导航 + 各板专用界面
 include/         协议与板级配置
 ```
