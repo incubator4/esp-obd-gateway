@@ -14,6 +14,16 @@ struct EspNowConfig {
     uint8_t channel = 1;
 };
 
+struct EspNowStats {
+    uint32_t rx_raw = 0;
+    uint32_t rx_short = 0;
+    uint32_t rx_bad_pkt = 0;
+    uint32_t rx_valid = 0;
+    uint32_t tx_queue = 0;
+    uint32_t tx_ok = 0;
+    uint32_t tx_fail = 0;
+};
+
 class EspNow {
 public:
     EspNow() = default;
@@ -36,6 +46,8 @@ public:
     bool removePeer(const uint8_t mac[6]);
 
     bool lastSendOk() const { return last_send_ok_; }
+    const EspNowStats& stats() const;
+    uint8_t currentChannel() const;
 
     static void handleRecv(const uint8_t mac[6], const uint8_t* data, int len);
     static void handleSend(bool ok);
@@ -49,6 +61,7 @@ private:
 
     EspNowConfig cfg_{};
     EspNowRecvFn recv_cb_;
+    EspNowStats stats_{};
     bool running_ = false;
     bool last_send_ok_ = true;
 };

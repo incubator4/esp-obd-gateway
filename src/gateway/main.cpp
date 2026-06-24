@@ -86,10 +86,13 @@ static void logHeartbeat(uint32_t now_ms) {
     g_last_log_ms = now_ms;
 
     const ObdTelemetry& t = g_collector.telemetry();
-    gwLogf("[GW] can=%s espnow=%s telem_tx=%lu rpm=%u speed=%u flags=0x%02X valid=0x%02X",
+    const obd::EspNowStats& es = g_espnow.stats();
+    gwLogf("[GW] can=%s espnow=%s telem_q=%lu tx_ok=%lu tx_fail=%lu last_tx=%s rpm=%u "
+           "speed=%u flags=0x%02X valid=0x%02X",
            g_can_ok ? "ok" : "fail", g_espnow_ok ? "ok" : "fail",
-           static_cast<unsigned long>(g_telem_tx_count), t.rpm, t.speed_kmh, t.flags,
-           t.valid_mask);
+           static_cast<unsigned long>(g_telem_tx_count),
+           static_cast<unsigned long>(es.tx_ok), static_cast<unsigned long>(es.tx_fail),
+           g_espnow.lastSendOk() ? "ok" : "fail", t.rpm, t.speed_kmh, t.flags, t.valid_mask);
 }
 
 void setup() {
@@ -123,7 +126,8 @@ void setup() {
         gwLog("[GW] WARN ESP-NOW init failed");
     } else {
         g_espnow.onReceive(onEspNowPacket);
-        gwLogf("[GW] ESP-NOW ready channel=%d", GW_ESPNOW_CHANNEL);
+        gwLogf("[GW] ESP-NOW ready channel=%d wifi_ch=%u", GW_ESPNOW_CHANNEL,
+               g_espnow.currentChannel());
     }
 
     if (g_can_ok && g_espnow_ok) {

@@ -14,3 +14,6 @@
 
 /** Display: pairing success toast visible duration (ms). */
 #define LINK_PAIR_SUCCESS_TOAST_MS 1600
+
+/** Display serial heartbeat interval (ms). */
+#define DISP_LOG_HEARTBEAT_MS 2000
