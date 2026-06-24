@@ -15,7 +15,7 @@
 
 #define OBD_MAGIC_0 0x4F  // 'O'
 #define OBD_MAGIC_1 0x42  // 'B'
-#define OBD_PROTOCOL_VERSION 1
+#define OBD_PROTOCOL_VERSION 2
 
 #define OBD_MAX_PAYLOAD 32
 
@@ -37,21 +37,26 @@ enum ObdMsgType : uint8_t {
 // ---------------------------------------------------------------------------
 
 enum ObdPid : uint8_t {
-    PID_ENGINE_LOAD = 0x04,   // Calculated engine load, 0–100 %
-    PID_COOLANT_TEMP = 0x05,  // Engine coolant temperature, °C
-    PID_INTAKE_TEMP = 0x0F,   // Intake air temperature, °C
-    PID_MAF = 0x10,           // Mass air flow, g/s (stored as ×10)
-    PID_THROTTLE = 0x11,      // Throttle position, 0–100 %
-    PID_ENGINE_RPM = 0x0C,    // Engine speed, rpm
-    PID_VEHICLE_SPEED = 0x0D, // Vehicle speed, km/h
-    PID_FUEL_LEVEL = 0x2F,    // Fuel tank level, 0–100 %
+    PID_ENGINE_LOAD = 0x04,      // Calculated engine load, 0–100 %
+    PID_COOLANT_TEMP = 0x05,     // Engine coolant temperature, °C
+    PID_FUEL_PRESSURE = 0x0A,    // Fuel pressure, kPa (stored as kPa)
+    PID_INTAKE_MAP = 0x0B,       // Intake manifold absolute pressure, kPa
+    PID_TIMING_ADVANCE = 0x0E,   // Ignition timing advance, °×2 before TDC
+    PID_INTAKE_TEMP = 0x0F,      // Intake air temperature, °C
+    PID_MAF = 0x10,              // Mass air flow, g/s (stored as ×10)
+    PID_THROTTLE = 0x11,         // Throttle position, 0–100 %
+    PID_ENGINE_RPM = 0x0C,       // Engine speed, rpm
+    PID_VEHICLE_SPEED = 0x0D,    // Vehicle speed, km/h
+    PID_TURBO_PRESSURE = 0x6F,   // Turbo boost pressure, kPa
+    PID_TURBO_RPM = 0x74,        // Turbocharger RPM
+    PID_FUEL_LEVEL = 0x2F,       // Fuel tank level, 0–100 %
 };
 
 // ---------------------------------------------------------------------------
 // ObdTelemetry.valid_mask — one bit per field below (set when PID read OK)
 // ---------------------------------------------------------------------------
 
-enum ObdTelemValid : uint8_t {
+enum ObdTelemValid : uint16_t {
     TELEM_VALID_RPM = 1 << 0,
     TELEM_VALID_SPEED = 1 << 1,
     TELEM_VALID_COOLANT = 1 << 2,
@@ -60,7 +65,12 @@ enum ObdTelemValid : uint8_t {
     TELEM_VALID_FUEL_LEVEL = 1 << 5,
     TELEM_VALID_MAF = 1 << 6,
     TELEM_VALID_INTAKE_TEMP = 1 << 7,
-    TELEM_VALID_ALL = 0xFF,
+    TELEM_VALID_FUEL_PRESSURE = 1 << 8,
+    TELEM_VALID_INTAKE_MAP = 1 << 9,
+    TELEM_VALID_TIMING_ADVANCE = 1 << 10,
+    TELEM_VALID_TURBO_PRESSURE = 1 << 11,
+    TELEM_VALID_TURBO_RPM = 1 << 12,
+    TELEM_VALID_ALL = 0x1FFF,
 };
 
 // ---------------------------------------------------------------------------
@@ -73,7 +83,7 @@ enum ObdTelemFlags : uint8_t {
 };
 
 // Returns the TELEM_VALID_* bit for a supported ObdPid, or 0 if unknown.
-inline uint8_t telemValidBitForPid(uint8_t pid) {
+inline uint16_t telemValidBitForPid(uint8_t pid) {
     switch (pid) {
         case PID_ENGINE_RPM:
             return TELEM_VALID_RPM;
@@ -91,6 +101,16 @@ inline uint8_t telemValidBitForPid(uint8_t pid) {
             return TELEM_VALID_MAF;
         case PID_INTAKE_TEMP:
             return TELEM_VALID_INTAKE_TEMP;
+        case PID_FUEL_PRESSURE:
+            return TELEM_VALID_FUEL_PRESSURE;
+        case PID_INTAKE_MAP:
+            return TELEM_VALID_INTAKE_MAP;
+        case PID_TIMING_ADVANCE:
+            return TELEM_VALID_TIMING_ADVANCE;
+        case PID_TURBO_PRESSURE:
+            return TELEM_VALID_TURBO_PRESSURE;
+        case PID_TURBO_RPM:
+            return TELEM_VALID_TURBO_RPM;
         default:
             return 0;
     }
@@ -98,32 +118,42 @@ inline uint8_t telemValidBitForPid(uint8_t pid) {
 
 #pragma pack(push, 1)
 
-// Periodic OBD snapshot (MSG_TELEMETRY payload, 12 bytes).
+// Periodic OBD snapshot (MSG_TELEMETRY payload, 19 bytes).
 //
 // Field decoding from raw OBD Mode 01 response bytes (after PID byte):
 //
-//   rpm           : ((A<<8)|B) / 4
-//   speed_kmh     : A
-//   coolant_c     : A - 40
-//   throttle_pct  : A * 100 / 255
-//   engine_load_pct: A * 100 / 255
-//   fuel_level_pct: A * 100 / 255
-//   maf_gps_x10   : ((A<<8)|B) * 10 / 100   (grams/sec × 10)
-//   intake_temp_c : A - 40
+//   rpm                 : ((A<<8)|B) / 4
+//   speed_kmh           : A
+//   coolant_c           : A - 40
+//   throttle_pct        : A * 100 / 255
+//   engine_load_pct     : A * 100 / 255
+//   fuel_level_pct      : A * 100 / 255
+//   maf_gps_x10         : ((A<<8)|B) * 10 / 100   (grams/sec × 10)
+//   intake_temp_c       : A - 40
+//   fuel_pressure_kpa   : A * 3
+//   intake_map_kpa      : A
+//   timing_advance_deg_x2: A - 128  (0.5° units, before TDC)
+//   turbo_pressure_kpa  : A (1 byte) or ((A<<8)|B) / 4 (2 bytes)
+//   turbo_rpm           : ((A<<8)|B) / 4
 //
 // UI should treat a field as usable only when its valid_mask bit is set.
 // Unset fields may retain the previous value from an earlier poll cycle.
 struct ObdTelemetry {
-    uint16_t rpm;             // 0–8031 (OBD max before /4)
-    uint8_t speed_kmh;        // 0–255 km/h
-    int8_t coolant_c;         // typically −40..215 °C
-    uint8_t throttle_pct;     // 0–100
-    uint8_t engine_load_pct;  // 0–100
-    uint8_t fuel_level_pct;   // 0–100
-    uint16_t maf_gps_x10;     // MAF in g/s × 10 (e.g. 125 = 12.5 g/s)
-    int8_t intake_temp_c;     // typically −40..215 °C
-    uint8_t flags;            // ObdTelemFlags
-    uint8_t valid_mask;       // ObdTelemValid
+    uint16_t rpm;                  // 0–8031 (OBD max before /4)
+    uint8_t speed_kmh;             // 0–255 km/h
+    int8_t coolant_c;              // typically −40..215 °C
+    uint8_t throttle_pct;          // 0–100
+    uint8_t engine_load_pct;       // 0–100
+    uint8_t fuel_level_pct;        // 0–100
+    uint16_t maf_gps_x10;          // MAF in g/s × 10 (e.g. 125 = 12.5 g/s)
+    int8_t intake_temp_c;          // typically −40..215 °C
+    uint16_t fuel_pressure_kpa;    // 0–765 kPa
+    uint8_t intake_map_kpa;        // 0–255 kPa
+    int8_t timing_advance_deg_x2;  // −128..127 (0.5° units)
+    uint16_t turbo_pressure_kpa;   // boost pressure, kPa
+    uint16_t turbo_rpm;            // turbocharger speed
+    uint8_t flags;                 // ObdTelemFlags
+    uint16_t valid_mask;           // ObdTelemValid
 };
 
 // On-demand PID read (MSG_PID_REQUEST payload).
@@ -176,7 +206,7 @@ struct ObdPacket {
 
 #pragma pack(pop)
 
-static_assert(sizeof(ObdTelemetry) == 12, "ObdTelemetry layout changed");
+static_assert(sizeof(ObdTelemetry) == 21, "ObdTelemetry layout changed");
 static_assert(sizeof(ObdTelemetry) <= OBD_MAX_PAYLOAD, "telemetry too large");
 static_assert(sizeof(ObdPidRequest) <= OBD_MAX_PAYLOAD, "pid request too large");
 static_assert(sizeof(ObdPidResponse) <= OBD_MAX_PAYLOAD, "pid response too large");

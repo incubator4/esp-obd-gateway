@@ -55,6 +55,45 @@ bool unitFromIntakeTempC(const uint8_t* raw, size_t len, int8_t& celsius) {
     return unitFromCoolantC(raw, len, celsius);
 }
 
+bool unitFromFuelPressureKpa(const uint8_t* raw, size_t len, uint16_t& kpa) {
+    if (raw == nullptr || len < 1) {
+        return false;
+    }
+    const uint32_t value = static_cast<uint32_t>(raw[0]) * 3U;
+    kpa = (value > 0xFFFFU) ? 0xFFFFU : static_cast<uint16_t>(value);
+    return true;
+}
+
+bool unitFromKpa(const uint8_t* raw, size_t len, uint8_t& kpa) {
+    if (raw == nullptr || len < 1) {
+        return false;
+    }
+    kpa = raw[0];
+    return true;
+}
+
+bool unitFromTimingDegX2(const uint8_t* raw, size_t len, int8_t& deg_x2) {
+    if (raw == nullptr || len < 1) {
+        return false;
+    }
+    deg_x2 = static_cast<int8_t>(static_cast<int16_t>(raw[0]) - 128);
+    return true;
+}
+
+bool unitFromTurboPressureKpa(const uint8_t* raw, size_t len, uint16_t& kpa) {
+    if (raw == nullptr || len < 1) {
+        return false;
+    }
+    if (len >= 2) {
+        const uint32_t value =
+            ((static_cast<uint32_t>(raw[0]) << 8) | raw[1]) / 4U;
+        kpa = (value > 0xFFFFU) ? 0xFFFFU : static_cast<uint16_t>(value);
+        return true;
+    }
+    kpa = static_cast<uint16_t>(raw[0]);
+    return true;
+}
+
 bool applyPidToTelemetry(uint8_t pid, const uint8_t* raw, size_t len,
                          ObdTelemetry& telem) {
     switch (pid) {
@@ -74,6 +113,16 @@ bool applyPidToTelemetry(uint8_t pid, const uint8_t* raw, size_t len,
             return unitFromMafGpsX10(raw, len, telem.maf_gps_x10);
         case PID_INTAKE_TEMP:
             return unitFromIntakeTempC(raw, len, telem.intake_temp_c);
+        case PID_FUEL_PRESSURE:
+            return unitFromFuelPressureKpa(raw, len, telem.fuel_pressure_kpa);
+        case PID_INTAKE_MAP:
+            return unitFromKpa(raw, len, telem.intake_map_kpa);
+        case PID_TIMING_ADVANCE:
+            return unitFromTimingDegX2(raw, len, telem.timing_advance_deg_x2);
+        case PID_TURBO_PRESSURE:
+            return unitFromTurboPressureKpa(raw, len, telem.turbo_pressure_kpa);
+        case PID_TURBO_RPM:
+            return unitFromRpm(raw, len, telem.turbo_rpm);
         default:
             return false;
     }
@@ -128,6 +177,36 @@ bool telemPidValue(const ObdTelemetry& telem, uint8_t pid, uint32_t& value) {
                 return false;
             }
             value = static_cast<uint32_t>(static_cast<int32_t>(telem.intake_temp_c));
+            return true;
+        case PID_FUEL_PRESSURE:
+            if ((telem.valid_mask & TELEM_VALID_FUEL_PRESSURE) == 0) {
+                return false;
+            }
+            value = telem.fuel_pressure_kpa;
+            return true;
+        case PID_INTAKE_MAP:
+            if ((telem.valid_mask & TELEM_VALID_INTAKE_MAP) == 0) {
+                return false;
+            }
+            value = telem.intake_map_kpa;
+            return true;
+        case PID_TIMING_ADVANCE:
+            if ((telem.valid_mask & TELEM_VALID_TIMING_ADVANCE) == 0) {
+                return false;
+            }
+            value = static_cast<uint32_t>(static_cast<int32_t>(telem.timing_advance_deg_x2));
+            return true;
+        case PID_TURBO_PRESSURE:
+            if ((telem.valid_mask & TELEM_VALID_TURBO_PRESSURE) == 0) {
+                return false;
+            }
+            value = telem.turbo_pressure_kpa;
+            return true;
+        case PID_TURBO_RPM:
+            if ((telem.valid_mask & TELEM_VALID_TURBO_RPM) == 0) {
+                return false;
+            }
+            value = telem.turbo_rpm;
             return true;
         default:
             return false;

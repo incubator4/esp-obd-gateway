@@ -20,6 +20,11 @@ void FakeTelemetry::update(uint32_t now_ms) {
     telem_.fuel_level_pct = 72;
     telem_.maf_gps_x10 = static_cast<uint16_t>((telem_.rpm / 100) * 25);
     telem_.intake_temp_c = static_cast<int8_t>(28 + std::sinf(phase * 0.5f) * 5.0f);
+    telem_.fuel_pressure_kpa = static_cast<uint16_t>(350 + wave * 100);
+    telem_.intake_map_kpa = static_cast<uint8_t>(30 + wave * 80);
+    telem_.timing_advance_deg_x2 = static_cast<int8_t>(10 + wave * 30);
+    telem_.turbo_pressure_kpa = static_cast<uint16_t>(wave * 180);
+    telem_.turbo_rpm = static_cast<uint16_t>(wave * 120000);
 
     telem_.flags = TELEM_FLAG_OBD_CONNECTED;
     telem_.valid_mask = TELEM_VALID_ALL;

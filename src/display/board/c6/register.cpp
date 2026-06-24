@@ -4,6 +4,7 @@
 #include "app/navigator.h"
 #include "app/screens/common.h"
 #include "app/screens/gauges.h"
+#include "app/screens/pid_gauges.h"
 #include "app/telemetry.h"
 
 namespace ui {
@@ -14,15 +15,16 @@ static SettingsScreen g_settings;
 
 void registerC6Screens(Navigator& nav, const disp::PanelSize& panel_size) {
     const PanelLayout layout = PanelLayout::fromSize(panel_size.width, panel_size.height);
-    constexpr uint8_t kPages = 3;
+    constexpr uint8_t kPages = 13;
 
-    g_rpm.init(layout, ScreenNavInfo{1, kPages});
-    g_speed.init(layout, ScreenNavInfo{2, kPages});
-    g_settings.init(layout, ScreenNavInfo{3, kPages});
+    g_settings.init(layout, ScreenNavInfo{1, kPages});
+    g_rpm.init(layout, ScreenNavInfo{2, kPages});
+    g_speed.init(layout, ScreenNavInfo{3, kPages});
 
+    nav.addScreen(&g_settings);
     nav.addScreen(&g_rpm);
     nav.addScreen(&g_speed);
-    nav.addScreen(&g_settings);
+    registerPidGaugeScreens(nav, telemetryRegistry(), layout, 4, kPages);
 
     TelemetryRegistry& telem = telemetryRegistry();
     telem.add(&g_rpm);

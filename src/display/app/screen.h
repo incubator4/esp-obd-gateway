@@ -9,7 +9,17 @@ namespace ui {
 enum class ScreenId : uint8_t {
     Rpm = 0,
     Speed = 1,
-    Settings = 2,
+    EngineLoad = 2,
+    CoolantTemp = 3,
+    FuelPressure = 4,
+    IntakeMap = 5,
+    TimingAdvance = 6,
+    IntakeTemp = 7,
+    Maf = 8,
+    Throttle = 9,
+    TurboPressure = 10,
+    TurboRpm = 11,
+    Settings = 12,
     // S3 专用
     AttitudeHorizon = 0x80,
 };

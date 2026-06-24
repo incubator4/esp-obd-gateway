@@ -19,6 +19,8 @@ public:
         uint32_t arc_color = 0x00D4AA;
         uint32_t stale_color = 0x555555;
         bool compact = false;
+        uint16_t value_scale = 1;  // divide raw value for display/arc (e.g. 10 for MAF ×10)
+        bool show_decimal = false;
     };
 
     void create(lv_obj_t* parent, const GaugeSlot& slot, const Config& config);

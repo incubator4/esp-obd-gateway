@@ -22,7 +22,7 @@ bool ObdCollector::poll(uint32_t now_ms) {
     last_poll_ms_ = now_ms;
     ++poll_count_;
 
-    uint8_t valid_mask = 0;
+    uint16_t valid_mask = 0;
     for (const uint8_t pid : kPidList) {
         ObdPidRaw raw{};
         if (obd_.readPid(pid, raw) != ObdError::Ok) {

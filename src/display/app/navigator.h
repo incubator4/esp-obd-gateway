@@ -13,7 +13,7 @@ namespace ui {
 
 class Navigator {
 public:
-    static constexpr size_t kMaxScreens = 8;
+    static constexpr size_t kMaxScreens = 16;
 
     void bindInput(disp::Input* input) { input_ = input; }
 

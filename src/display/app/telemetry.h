@@ -19,7 +19,7 @@ public:
     void setAll(const ObdTelemetry* telem, bool stale);
 
 private:
-    static constexpr size_t kMaxConsumers = 8;
+    static constexpr size_t kMaxConsumers = 16;
     TelemetryConsumer* consumers_[kMaxConsumers]{};
     size_t count_ = 0;
 };

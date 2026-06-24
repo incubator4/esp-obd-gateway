@@ -115,13 +115,30 @@ void ValueGauge::refreshLabels(int32_t value, bool stale) {
         return;
     }
 
-    const int32_t clamped = clampValue(value, config_.min_value, config_.max_value);
+    const int32_t scale = (config_.value_scale > 1) ? static_cast<int32_t>(config_.value_scale) : 1;
+    int32_t arc_value = value;
+    if (scale > 1) {
+        arc_value = (value >= 0) ? (value + scale / 2) / scale : (value - scale / 2) / scale;
+    }
+    const int32_t clamped = clampValue(arc_value, config_.min_value, config_.max_value);
     lv_arc_set_value(arc_, clamped);
     lv_obj_set_style_arc_color(arc_, lv_color_hex(config_.arc_color), LV_PART_INDICATOR);
     lv_obj_set_style_text_color(value_label_, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
 
     char buf[16];
-    std::snprintf(buf, sizeof(buf), "%ld", static_cast<long>(value));
+    if (config_.show_decimal && scale > 1) {
+        const int32_t whole = value / scale;
+        const int32_t frac = (value >= 0) ? (value % scale) : (-(value % scale));
+        const int32_t frac_digit = (frac * 10 + scale / 2) / scale;
+        if (value < 0 && whole == 0) {
+            std::snprintf(buf, sizeof(buf), "-0.%01ld", static_cast<long>(frac_digit));
+        } else {
+            std::snprintf(buf, sizeof(buf), "%ld.%01ld", static_cast<long>(whole),
+                          static_cast<long>(frac_digit));
+        }
+    } else {
+        std::snprintf(buf, sizeof(buf), "%ld", static_cast<long>(arc_value));
+    }
     lv_label_set_text(value_label_, buf);
     alignValueStack(value_label_, unit_label_, arc_, config_.compact);
 }

@@ -38,12 +38,17 @@ private:
     static constexpr uint8_t kPidList[] = {
         PID_ENGINE_RPM,
         PID_VEHICLE_SPEED,
-        PID_COOLANT_TEMP,
-        PID_THROTTLE,
         PID_ENGINE_LOAD,
-        PID_FUEL_LEVEL,
-        PID_MAF,
+        PID_COOLANT_TEMP,
+        PID_FUEL_PRESSURE,
+        PID_INTAKE_MAP,
+        PID_TIMING_ADVANCE,
         PID_INTAKE_TEMP,
+        PID_MAF,
+        PID_THROTTLE,
+        PID_TURBO_PRESSURE,
+        PID_TURBO_RPM,
+        PID_FUEL_LEVEL,
     };
 };
 

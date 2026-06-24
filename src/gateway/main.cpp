@@ -105,13 +105,13 @@ static void logHeartbeat(uint32_t now_ms) {
     const obd::EspNowStats& es = g_espnow.stats();
 #if GW_FAKE_OBD
     gwLogf("[GW] mode=fake espnow=%s telem_q=%lu tx_ok=%lu tx_fail=%lu last_tx=%s rpm=%u "
-           "speed=%u flags=0x%02X valid=0x%02X",
+           "speed=%u flags=0x%02X valid=0x%04X",
            g_espnow_ok ? "ok" : "fail", static_cast<unsigned long>(g_telem_tx_count),
            static_cast<unsigned long>(es.tx_ok), static_cast<unsigned long>(es.tx_fail),
            g_espnow.lastSendOk() ? "ok" : "fail", t.rpm, t.speed_kmh, t.flags, t.valid_mask);
 #else
     gwLogf("[GW] can=%s espnow=%s telem_q=%lu tx_ok=%lu tx_fail=%lu last_tx=%s rpm=%u "
-           "speed=%u flags=0x%02X valid=0x%02X",
+           "speed=%u flags=0x%02X valid=0x%04X",
            g_can_ok ? "ok" : "fail", g_espnow_ok ? "ok" : "fail",
            static_cast<unsigned long>(g_telem_tx_count),
            static_cast<unsigned long>(es.tx_ok), static_cast<unsigned long>(es.tx_fail),
