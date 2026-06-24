@@ -1,5 +1,7 @@
 #include "panels/c6_lcd_13/panel.h"
 
+#include "config_link.h"
+
 #include <Arduino.h>
 #include <Arduino_GFX_Library.h>
 #include <lvgl.h>
@@ -93,6 +95,9 @@ bool C6Lcd13Input::begin() {
     boot_raw_prev_ = digitalRead(DISP_C6_BOOT_PIN);
     boot_pressed_prev_ = boot_raw_prev_ == LOW;
     boot_click_pending_ = false;
+    boot_long_pending_ = false;
+    boot_long_fired_ = false;
+    boot_press_start_ms_ = millis();
     boot_last_edge_ms_ = millis();
 
 #if defined(DISPLAY_DEBUG_BOOT)
@@ -107,6 +112,18 @@ bool C6Lcd13Input::begin() {
 void C6Lcd13Input::poll() {
     const int raw = digitalRead(DISP_C6_BOOT_PIN);
     const uint32_t now = millis();
+    const bool pressed = raw == LOW;
+
+    if (pressed && boot_pressed_prev_) {
+        if (!boot_long_fired_ && (now - boot_press_start_ms_ >= LINK_GATEWAY_PAIR_HOLD_MS)) {
+            boot_long_fired_ = true;
+            boot_long_pending_ = true;
+            boot_click_pending_ = false;
+#if defined(DISPLAY_DEBUG_BOOT)
+            Serial.println("[BOOT] long press latched -> pairing");
+#endif
+        }
+    }
 
     if (raw != boot_raw_prev_) {
         if (now - boot_last_edge_ms_ >= kBootDebounceMs) {
@@ -118,15 +135,23 @@ void C6Lcd13Input::poll() {
             boot_raw_prev_ = raw;
             boot_last_edge_ms_ = now;
 
-            const bool pressed = raw == LOW;
             if (pressed && !boot_pressed_prev_) {
-                boot_click_pending_ = true;
+                boot_press_start_ms_ = now;
+                boot_long_fired_ = false;
 #if defined(DISPLAY_DEBUG_BOOT)
-                Serial.println("[BOOT] press (latched click)");
+                Serial.println("[BOOT] press");
 #endif
             } else if (!pressed && boot_pressed_prev_) {
+                if (!boot_long_fired_) {
+                    boot_click_pending_ = true;
 #if defined(DISPLAY_DEBUG_BOOT)
-                Serial.println("[BOOT] release");
+                    Serial.println("[BOOT] short release -> click");
+#endif
+                }
+#if defined(DISPLAY_DEBUG_BOOT)
+                else {
+                    Serial.println("[BOOT] long release");
+                }
 #endif
             }
             boot_pressed_prev_ = pressed;
@@ -153,6 +178,14 @@ bool C6Lcd13Input::buttonClicked(InputButton btn) {
 #if defined(DISPLAY_DEBUG_BOOT)
         Serial.println("[BOOT] click consumed -> navigator");
 #endif
+        return true;
+    }
+    return false;
+}
+
+bool C6Lcd13Input::buttonLongPressed(InputButton btn) {
+    if (btn == InputButton::Boot && boot_long_pending_) {
+        boot_long_pending_ = false;
         return true;
     }
     return false;

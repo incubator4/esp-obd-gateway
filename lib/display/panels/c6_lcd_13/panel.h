@@ -29,11 +29,15 @@ public:
 
     bool buttonDown(InputButton btn) const override;
     bool buttonClicked(InputButton btn) override;
+    bool buttonLongPressed(InputButton btn) override;
 
 private:
     int boot_raw_prev_ = 1;
     bool boot_pressed_prev_ = false;
     bool boot_click_pending_ = false;
+    bool boot_long_pending_ = false;
+    bool boot_long_fired_ = false;
+    uint32_t boot_press_start_ms_ = 0;
     uint32_t boot_last_edge_ms_ = 0;
 };
 

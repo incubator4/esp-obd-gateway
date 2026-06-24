@@ -1,8 +1,11 @@
 #include <Arduino.h>
 
 #include "app/navigator.h"
+#include "app/gateway_link.h"
 #include "app/telemetry.h"
+#include "app/widgets/pair_success_toast.h"
 #include "display.h"
+#include "config_link.h"
 #include "protocol.h"
 #include "transport.h"
 
@@ -28,14 +31,26 @@ static bool g_have_telemetry = false;
 static uint32_t g_last_lvgl_tick_ms = 0;
 
 static void onEspNowPacket(const uint8_t mac[6], const ObdPacket& pkt) {
-    (void)mac;
     if (pkt.type != MSG_TELEMETRY) {
         return;
     }
-    if (!obd::packetGetPayload(&pkt, &g_telemetry, sizeof(g_telemetry))) {
+    if (!ui::gatewayLink().acceptFrom(mac)) {
         return;
     }
-    g_last_rx_ms = millis();
+    ObdTelemetry telem{};
+    if (!obd::packetGetPayload(&pkt, &telem, sizeof(telem))) {
+        return;
+    }
+
+    const uint32_t now = millis();
+    ui::gatewayLink().onTelemetry(mac, now);
+
+    if (!ui::gatewayLink().hasGateway()) {
+        return;
+    }
+
+    g_telemetry = telem;
+    g_last_rx_ms = now;
     g_have_telemetry = true;
 }
 
@@ -69,6 +84,8 @@ void setup() {
 #endif
     g_nav.restoreSavedScreen();
 
+    ui::gatewayLink().begin();
+
     obd::EspNowConfig esp_cfg{};
     esp_cfg.channel = DISP_ESPNOW_CHANNEL;
     if (!g_espnow.begin(esp_cfg)) {
@@ -92,8 +109,25 @@ void loop() {
     g_nav.handleInput();
     g_nav.tick(now);
 
-    const bool stale = !g_have_telemetry || (now - g_last_rx_ms > 2000);
-    ui::telemetryRegistry().setAll(g_have_telemetry ? &g_telemetry : nullptr, stale);
+    ui::gatewayLink().tick(now);
+
+    if (ui::gatewayLink().consumePairSuccess()) {
+        uint8_t gw_mac[6]{};
+        ui::gatewayLink().gatewayMac(gw_mac);
+        ui::pairSuccessToast().show(gw_mac);
+    }
+
+    ui::pairSuccessToast().tick(now);
+
+    if (ui::gatewayLink().isPairing()) {
+        g_have_telemetry = false;
+    }
+
+    const bool linked = ui::gatewayLink().hasGateway();
+    const bool stale =
+        !linked || !g_have_telemetry || (now - g_last_rx_ms > LINK_TELEMETRY_STALE_MS);
+    ui::telemetryRegistry().setAll(linked && g_have_telemetry ? &g_telemetry : nullptr,
+                                   stale);
 
     delay(5);
 }

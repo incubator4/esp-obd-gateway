@@ -79,4 +79,59 @@ bool applyPidToTelemetry(uint8_t pid, const uint8_t* raw, size_t len,
     }
 }
 
+bool telemPidValue(const ObdTelemetry& telem, uint8_t pid, uint32_t& value) {
+    switch (pid) {
+        case PID_ENGINE_RPM:
+            if ((telem.valid_mask & TELEM_VALID_RPM) == 0) {
+                return false;
+            }
+            value = telem.rpm;
+            return true;
+        case PID_VEHICLE_SPEED:
+            if ((telem.valid_mask & TELEM_VALID_SPEED) == 0) {
+                return false;
+            }
+            value = telem.speed_kmh;
+            return true;
+        case PID_COOLANT_TEMP:
+            if ((telem.valid_mask & TELEM_VALID_COOLANT) == 0) {
+                return false;
+            }
+            value = static_cast<uint32_t>(static_cast<int32_t>(telem.coolant_c));
+            return true;
+        case PID_THROTTLE:
+            if ((telem.valid_mask & TELEM_VALID_THROTTLE) == 0) {
+                return false;
+            }
+            value = telem.throttle_pct;
+            return true;
+        case PID_ENGINE_LOAD:
+            if ((telem.valid_mask & TELEM_VALID_ENGINE_LOAD) == 0) {
+                return false;
+            }
+            value = telem.engine_load_pct;
+            return true;
+        case PID_FUEL_LEVEL:
+            if ((telem.valid_mask & TELEM_VALID_FUEL_LEVEL) == 0) {
+                return false;
+            }
+            value = telem.fuel_level_pct;
+            return true;
+        case PID_MAF:
+            if ((telem.valid_mask & TELEM_VALID_MAF) == 0) {
+                return false;
+            }
+            value = telem.maf_gps_x10;
+            return true;
+        case PID_INTAKE_TEMP:
+            if ((telem.valid_mask & TELEM_VALID_INTAKE_TEMP) == 0) {
+                return false;
+            }
+            value = static_cast<uint32_t>(static_cast<int32_t>(telem.intake_temp_c));
+            return true;
+        default:
+            return false;
+    }
+}
+
 }  // namespace obd

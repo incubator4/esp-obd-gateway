@@ -1,4 +1,5 @@
 #include "app/navigator.h"
+#include "app/gateway_link.h"
 #include "app/screen.h"
 #include "app/screen_store.h"
 #include "core/input.h"
@@ -131,6 +132,14 @@ void Navigator::handleInput() {
     }
 
     input_->poll();
+
+    if (input_->buttonLongPressed(disp::InputButton::Boot)) {
+#if defined(DISPLAY_DEBUG_BOOT)
+        Serial.println("[NAV] BOOT long -> gateway pairing");
+#endif
+        gatewayLink().startPairing();
+        return;
+    }
 
     if (input_->buttonClicked(disp::InputButton::Boot)) {
 #if defined(DISPLAY_DEBUG_BOOT)

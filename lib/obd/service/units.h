@@ -21,4 +21,6 @@ bool unitFromIntakeTempC(const uint8_t* raw, size_t len, int8_t& celsius);
 bool applyPidToTelemetry(uint8_t pid, const uint8_t* raw, size_t len,
                          ObdTelemetry& telem);
 
+bool telemPidValue(const ObdTelemetry& telem, uint8_t pid, uint32_t& value);
+
 }  // namespace obd

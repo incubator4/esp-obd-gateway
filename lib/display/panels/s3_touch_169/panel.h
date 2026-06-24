@@ -29,6 +29,7 @@ public:
 
     bool buttonDown(InputButton btn) const override;
     bool buttonClicked(InputButton btn) override;
+    bool buttonLongPressed(InputButton btn) override;
 
 private:
     bool touch_active_ = false;
@@ -36,7 +37,11 @@ private:
     int16_t touch_y_ = 0;
 
     bool boot_prev_ = true;
+    bool boot_pressed_ = false;
     bool boot_click_ = false;
+    bool boot_long_pending_ = false;
+    bool boot_long_fired_ = false;
+    uint32_t boot_press_start_ms_ = 0;
     bool pwr_prev_ = true;
     bool pwr_click_ = false;
 };

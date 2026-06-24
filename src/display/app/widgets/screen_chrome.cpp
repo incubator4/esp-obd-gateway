@@ -1,5 +1,7 @@
 #include "app/widgets/screen_chrome.h"
 
+#include "app/gateway_link.h"
+
 #include <cstdio>
 
 namespace ui {
@@ -58,6 +60,20 @@ void updateFooterStatus(lv_obj_t* footer_label, const ObdTelemetry* telem, bool 
         std::snprintf(buf, sizeof(buf), "%u/%u  BOOT>", nav.index, nav.total);
         lv_label_set_text(footer_label, buf);
         lv_obj_set_style_text_color(footer_label, lv_color_hex(0x888888), LV_PART_MAIN);
+        return;
+    }
+
+    if (gatewayLink().isPairing()) {
+        std::snprintf(buf, sizeof(buf), "PAIRING  %u/%u  BOOT>", nav.index, nav.total);
+        lv_label_set_text(footer_label, buf);
+        lv_obj_set_style_text_color(footer_label, lv_color_hex(0xFFAA00), LV_PART_MAIN);
+        return;
+    }
+
+    if (!gatewayLink().hasGateway()) {
+        std::snprintf(buf, sizeof(buf), "NO GW  %u/%u  BOOT>", nav.index, nav.total);
+        lv_label_set_text(footer_label, buf);
+        lv_obj_set_style_text_color(footer_label, lv_color_hex(0x666666), LV_PART_MAIN);
         return;
     }
 

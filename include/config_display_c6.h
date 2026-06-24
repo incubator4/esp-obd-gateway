@@ -15,3 +15,5 @@
 #define DISP_C6_BOOT_PIN 9
 
 #define DISP_ESPNOW_CHANNEL 1
+
+#include "config_link.h"

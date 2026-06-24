@@ -1,5 +1,7 @@
 #include "panels/s3_touch_169/panel.h"
 
+#include "config_link.h"
+
 #include <Arduino.h>
 #include <Wire.h>
 
@@ -50,13 +52,35 @@ bool S3Touch169Input::begin() {
     // TODO: CST816T init at 0x15
 
     boot_prev_ = digitalRead(0) == HIGH;
+    boot_pressed_ = digitalRead(0) == LOW;
+    boot_press_start_ms_ = millis();
     return true;
 }
 
 void S3Touch169Input::poll() {
     const bool boot_now = digitalRead(0) == HIGH;
-    boot_click_ = boot_prev_ && !boot_now;
+    const bool boot_down = !boot_now;
+    const uint32_t now = millis();
+
+    if (boot_down && boot_pressed_) {
+        if (!boot_long_fired_ && (now - boot_press_start_ms_ >= LINK_GATEWAY_PAIR_HOLD_MS)) {
+            boot_long_fired_ = true;
+            boot_long_pending_ = true;
+            boot_click_ = false;
+        }
+    }
+
+    if (boot_prev_ && !boot_now) {
+        boot_press_start_ms_ = now;
+        boot_long_fired_ = false;
+    } else if (!boot_prev_ && boot_now) {
+        if (!boot_long_fired_) {
+            boot_click_ = true;
+        }
+    }
+
     boot_prev_ = boot_now;
+    boot_pressed_ = boot_down;
 
     touch_active_ = digitalRead(DISP_S3_TP_INT) == LOW;
     if (touch_active_) {
@@ -93,6 +117,14 @@ bool S3Touch169Input::buttonClicked(InputButton btn) {
     }
     if (btn == InputButton::Power && pwr_click_) {
         pwr_click_ = false;
+        return true;
+    }
+    return false;
+}
+
+bool S3Touch169Input::buttonLongPressed(InputButton btn) {
+    if (btn == InputButton::Boot && boot_long_pending_) {
+        boot_long_pending_ = false;
         return true;
     }
     return false;

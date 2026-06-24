@@ -20,10 +20,15 @@ public:
     void onTick(uint32_t now_ms) override;
 
 private:
+    void refresh(uint32_t now_ms);
+
     PanelLayout layout_{};
     ScreenNavInfo nav_{};
     lv_obj_t* root_ = nullptr;
     lv_obj_t* footer_label_ = nullptr;
+    lv_obj_t* status_label_ = nullptr;
+    lv_obj_t* mac_label_ = nullptr;
+    lv_obj_t* hint_label_ = nullptr;
 };
 
 }  // namespace ui

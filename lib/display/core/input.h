@@ -23,6 +23,7 @@ public:
 
     virtual bool buttonDown(InputButton btn) const = 0;
     virtual bool buttonClicked(InputButton btn) = 0;
+    virtual bool buttonLongPressed(InputButton btn) = 0;
 };
 
 }  // namespace disp

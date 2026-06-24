@@ -22,3 +22,5 @@
 #define DISP_S3_VER_RES 280
 
 #define DISP_ESPNOW_CHANNEL 1
+
+#include "config_link.h"

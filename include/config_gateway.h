@@ -16,3 +16,5 @@
 
 /** ESP-NOW Wi-Fi 信道（须与 display 端一致） */
 #define GW_ESPNOW_CHANNEL 1
+
+#include "config_link.h"
