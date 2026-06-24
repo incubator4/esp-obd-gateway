@@ -32,7 +32,7 @@ loop:
   features.updateAll()
   nav.handleInput()    ← BOOT 下一屏 / PWR 上一屏 / 触摸
   nav.tick()
-  更新 ObdDashboard 遥测
+  telemetryRegistry().setAll(...)   ← 更新当前已注册 Screen 的遥测
 ```
 
 ## 构建环境
@@ -46,7 +46,8 @@ loop:
 
 | ID | 界面 | 板型 |
 |----|------|------|
-| `ObdDashboard` | OBD 仪表盘 | 通用 |
+| `Rpm` | 发动机转速 | 通用 |
+| `Speed` | 当前时速 | 通用 |
 | `Settings` | 设置 | 通用 |
 | `AttitudeHorizon` (0x80) | IMU 人工地平仪 | 仅 S3 |
 

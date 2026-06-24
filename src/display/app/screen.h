@@ -7,8 +7,9 @@ namespace ui {
 
 /** 通用界面 ID；板级可扩展专用 Screen */
 enum class ScreenId : uint8_t {
-    ObdDashboard = 0,
-    Settings = 1,
+    Rpm = 0,
+    Speed = 1,
+    Settings = 2,
     // S3 专用
     AttitudeHorizon = 0x80,
 };

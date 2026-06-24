@@ -20,14 +20,15 @@ board/
 ## 注册示例
 
 ```cpp
-void registerS3Screens(Navigator& nav) {
-    nav.addScreen(&g_obd);       // 通用
-    nav.addScreen(&g_attitude);  // S3 专用
-    nav.addScreen(&g_settings);  // 通用
+void registerS3Screens(Navigator& nav, const disp::PanelSize& panel_size) {
+    nav.addScreen(&g_rpm);       // 通用
+    nav.addScreen(&g_speed);     // 通用
+    nav.addScreen(&g_attitude);    // S3 专用
+    nav.addScreen(&g_settings);    // 通用
 }
 ```
 
-`main.cpp` 通过 `c6ObdDashboardScreen()` / `s3ObdDashboardScreen()` 取得 OBD 屏指针，用于 ESP-NOW 遥测更新。
+遥测经 `TelemetryRegistry::setAll()` 在 `main.cpp` 中广播到已注册的 Screen。
 
 ## 编译隔离
 

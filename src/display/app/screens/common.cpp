@@ -1,36 +1,35 @@
 #include "app/screens/common.h"
 
-#include <Arduino.h>
-
 namespace ui {
 
-void ObdDashboardScreen::onEnter() {
-    // TODO: LVGL 创建 RPM / 车速等控件
-    Serial.println("[UI] OBD dashboard");
-}
-
-void ObdDashboardScreen::onTick(uint32_t now_ms) {
-    (void)now_ms;
-    // TODO: 刷新 telem_ 到 LVGL
-}
-
-void ObdDashboardScreen::onTouch(int16_t x, int16_t y) {
-    (void)x;
-    (void)y;
-    // TODO: 点击区域切换 PID 详情
-}
-
-void ObdDashboardScreen::setTelemetry(const ObdTelemetry* telem, bool stale) {
-    telem_ = telem;
-    stale_ = stale;
+void SettingsScreen::init(const PanelLayout& layout, const ScreenNavInfo& nav) {
+    layout_ = layout;
+    nav_ = nav;
 }
 
 void SettingsScreen::onEnter() {
-    Serial.println("[UI] Settings");
+    root_ = lv_obj_create(nullptr);
+    styleScreenRoot(root_);
+    lv_screen_load(root_);
+
+    createHeader(root_, "Settings", layout_.header_h);
+    footer_label_ = createFooter(root_, layout_, nav_, true);
+
+    lv_obj_t* label = lv_label_create(root_);
+    lv_label_set_text(label, "按 BOOT 切换界面");
+    lv_obj_set_style_text_color(label, lv_color_hex(0x888888), LV_PART_MAIN);
+    lv_obj_set_style_text_font(label, &lv_font_montserrat_20, LV_PART_MAIN);
+    lv_obj_center(label);
 }
 
-void SettingsScreen::onTick(uint32_t now_ms) {
-    (void)now_ms;
+void SettingsScreen::onExit() {
+    if (root_ != nullptr) {
+        lv_obj_del(root_);
+        root_ = nullptr;
+    }
+    footer_label_ = nullptr;
 }
+
+void SettingsScreen::onTick(uint32_t now_ms) { (void)now_ms; }
 
 }  // namespace ui

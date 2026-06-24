@@ -1,21 +1,35 @@
 #include "board/s3/register.h"
 
+#include "app/layout.h"
+#include "app/navigator.h"
 #include "app/screens/common.h"
+#include "app/screens/gauges.h"
+#include "app/telemetry.h"
 #include "board/s3/screens/attitude.h"
 
 namespace ui {
 
-static ObdDashboardScreen g_obd;
+static RpmScreen g_rpm;
+static SpeedScreen g_speed;
 static SettingsScreen g_settings;
 static AttitudeHorizonScreen g_attitude;
 
-void registerS3Screens(Navigator& nav) {
-    nav.addScreen(&g_obd);
+void registerS3Screens(Navigator& nav, const disp::PanelSize& panel_size) {
+    const PanelLayout layout = PanelLayout::fromSize(panel_size.width, panel_size.height);
+    constexpr uint8_t kPages = 4;
+
+    g_rpm.init(layout, ScreenNavInfo{1, kPages});
+    g_speed.init(layout, ScreenNavInfo{2, kPages});
+    g_settings.init(layout, ScreenNavInfo{4, kPages});
+
+    nav.addScreen(&g_rpm);
+    nav.addScreen(&g_speed);
     nav.addScreen(&g_attitude);
     nav.addScreen(&g_settings);
-    // TODO: S3 专用：RTC 时钟、电池、蜂鸣器测试界面
-}
 
-ObdDashboardScreen* s3ObdDashboardScreen() { return &g_obd; }
+    TelemetryRegistry& telem = telemetryRegistry();
+    telem.add(&g_rpm);
+    telem.add(&g_speed);
+}
 
 }  // namespace ui

@@ -31,8 +31,10 @@ public:
     bool buttonClicked(InputButton btn) override;
 
 private:
-    bool boot_prev_ = true;
-    bool boot_click_ = false;
+    int boot_raw_prev_ = 1;
+    bool boot_pressed_prev_ = false;
+    bool boot_click_pending_ = false;
+    uint32_t boot_last_edge_ms_ = 0;
 };
 
 }  // namespace disp

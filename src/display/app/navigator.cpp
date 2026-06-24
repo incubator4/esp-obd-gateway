@@ -3,6 +3,7 @@
 #include "core/input.h"
 
 #include <Arduino.h>
+#include <lvgl.h>
 
 namespace ui {
 
@@ -51,18 +52,29 @@ bool Navigator::show(ScreenId id) {
     }
     current_ = next;
     current_->onEnter();
+    lv_refr_now(nullptr);
     return true;
 }
 
 void Navigator::next() {
     if (count_ == 0 || current_ == nullptr) {
+#if defined(DISPLAY_DEBUG_BOOT)
+        Serial.println("[NAV] next ignored (no screens)");
+#endif
         return;
     }
     const int idx = indexOf(current_);
     if (idx < 0) {
+#if defined(DISPLAY_DEBUG_BOOT)
+        Serial.println("[NAV] next ignored (current not found)");
+#endif
         return;
     }
     const size_t next_idx = static_cast<size_t>((idx + 1) % static_cast<int>(count_));
+#if defined(DISPLAY_DEBUG_BOOT)
+    Serial.printf("[NAV] next %d -> %u (%s)\n", idx, static_cast<unsigned>(next_idx),
+                  screens_[next_idx]->title());
+#endif
     show(screens_[next_idx]->id());
 }
 
@@ -95,6 +107,10 @@ void Navigator::handleInput() {
     input_->poll();
 
     if (input_->buttonClicked(disp::InputButton::Boot)) {
+#if defined(DISPLAY_DEBUG_BOOT)
+        Serial.printf("[NAV] BOOT -> next (current=%s)\n",
+                      current_ != nullptr ? current_->title() : "null");
+#endif
         next();
         if (current_ != nullptr) {
             current_->onButton(static_cast<int>(disp::InputButton::Boot));

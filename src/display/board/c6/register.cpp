@@ -1,18 +1,32 @@
 #include "board/c6/register.h"
 
+#include "app/layout.h"
+#include "app/navigator.h"
 #include "app/screens/common.h"
+#include "app/screens/gauges.h"
+#include "app/telemetry.h"
 
 namespace ui {
 
-static ObdDashboardScreen g_obd;
+static RpmScreen g_rpm;
+static SpeedScreen g_speed;
 static SettingsScreen g_settings;
 
-void registerC6Screens(Navigator& nav) {
-    nav.addScreen(&g_obd);
-    nav.addScreen(&g_settings);
-    // TODO: C6 专用界面（如 RGB 灯效、SD 卡状态）
-}
+void registerC6Screens(Navigator& nav, const disp::PanelSize& panel_size) {
+    const PanelLayout layout = PanelLayout::fromSize(panel_size.width, panel_size.height);
+    constexpr uint8_t kPages = 3;
 
-ObdDashboardScreen* c6ObdDashboardScreen() { return &g_obd; }
+    g_rpm.init(layout, ScreenNavInfo{1, kPages});
+    g_speed.init(layout, ScreenNavInfo{2, kPages});
+    g_settings.init(layout, ScreenNavInfo{3, kPages});
+
+    nav.addScreen(&g_rpm);
+    nav.addScreen(&g_speed);
+    nav.addScreen(&g_settings);
+
+    TelemetryRegistry& telem = telemetryRegistry();
+    telem.add(&g_rpm);
+    telem.add(&g_speed);
+}
 
 }  // namespace ui

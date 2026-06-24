@@ -1,11 +1,11 @@
 #pragma once
 
 #include "app/navigator.h"
-#include "app/screens/common.h"
+#include "core/panel.h"
 
 namespace ui {
 
-void registerS3Screens(Navigator& nav);
-ObdDashboardScreen* s3ObdDashboardScreen();
+void registerS3Screens(Navigator& nav, const disp::PanelSize& panel_size);
 
 }  // namespace ui
+

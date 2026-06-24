@@ -40,7 +40,7 @@ virtual void onEnter() / onExit() / onTick() / onTouch() / onButton();
 
 | 类 | ScreenId | 职责 |
 |----|----------|------|
-| `ObdDashboardScreen` | `ObdDashboard` | 显示 `ObdTelemetry`，`setTelemetry()` 由 main 更新 |
+| `RpmScreen` / `SpeedScreen` | `Rpm` / `Speed` | 全屏仪表，`setTelemetry()` 由 registry 更新 |
 | `SettingsScreen` | `Settings` | 设置占位 |
 
 LVGL 控件创建放在各 Screen 的 `onEnter()`（TODO）。

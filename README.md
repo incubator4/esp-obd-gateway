@@ -15,7 +15,7 @@ ESP32 汽车 OBD-II 数据网关：网关从 CAN 读数据，经 **ESP-NOW** 发
 | 环境      | 板型                            | 职责                            |
 | --------- | ------------------------------- | ------------------------------- |
 | `gateway` | `4d_systems_esp32s3_gen4_r8n16` | CAN 收发、OBD PID、ESP-NOW 广播 |
-| `display_c6` | Waveshare ESP32-C6-LCD-1.3 | ESP-NOW、240×240、BOOT 切屏 |
+| `display_c6` | Waveshare ESP32-C6-LCD-1.3 | ESP-NOW、240×240、BOOT 切屏（转速→时速→设置） |
 | `display_s3` | Waveshare ESP32-S3-Touch-LCD-1.69 | 触摸、IMU 姿态屏、ESP-NOW |
 
 ## 硬件接线

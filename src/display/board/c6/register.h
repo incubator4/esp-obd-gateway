@@ -1,11 +1,11 @@
 #pragma once
 
 #include "app/navigator.h"
-#include "app/screens/common.h"
+#include "core/panel.h"
 
 namespace ui {
 
-void registerC6Screens(Navigator& nav);
-ObdDashboardScreen* c6ObdDashboardScreen();
+void registerC6Screens(Navigator& nav, const disp::PanelSize& panel_size);
 
 }  // namespace ui
+

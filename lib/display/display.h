@@ -12,5 +12,6 @@
 #include "board/factory.h"
 #include "core/feature.h"
 #include "core/input.h"
+#include "core/lvgl_port.h"
 #include "core/panel.h"
 #include "features/imu_attitude.h"
