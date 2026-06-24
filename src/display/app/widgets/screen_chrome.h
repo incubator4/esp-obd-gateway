@@ -15,7 +15,7 @@ struct ScreenNavInfo {
 };
 
 void styleScreenRoot(lv_obj_t* root);
-lv_obj_t* createHeader(lv_obj_t* parent, const char* title, uint16_t header_h);
+lv_obj_t* createHeader(lv_obj_t* parent, const char* title, const PanelLayout& layout);
 lv_obj_t* createFooter(lv_obj_t* parent, const PanelLayout& layout,
                        const ScreenNavInfo& nav, bool boot_only);
 void updateFooterStatus(lv_obj_t* footer_label, const ObdTelemetry* telem, bool stale,

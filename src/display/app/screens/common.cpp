@@ -17,12 +17,12 @@ void SettingsScreen::onEnter() {
     styleScreenRoot(root_);
     lv_screen_load(root_);
 
-    createHeader(root_, "Settings", layout_.header_h);
+    createHeader(root_, "Settings", layout_);
     footer_label_ = createFooter(root_, layout_, nav_, false);
 
-    const int16_t content_x = 12;
-    const int16_t line_h = 22;
-    int16_t y = static_cast<int16_t>(layout_.content_y + 8);
+    const int16_t content_x = static_cast<int16_t>(layout_.pad_x);
+    const int16_t line_h = static_cast<int16_t>(layout_.line_h);
+    int16_t y = static_cast<int16_t>(layout_.content_y + layout_.pad_y);
 
     lv_obj_t* gw_title = lv_label_create(root_);
     lv_label_set_text(gw_title, "Gateway");
@@ -35,7 +35,7 @@ void SettingsScreen::onEnter() {
     lv_obj_set_style_text_color(mac_label_, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
     lv_obj_set_style_text_font(mac_label_, &lv_font_montserrat_20, LV_PART_MAIN);
     lv_obj_set_pos(mac_label_, content_x, y);
-    y = static_cast<int16_t>(y + line_h + 6);
+    y = static_cast<int16_t>(y + line_h + layout_.pad_y / 2);
 
     lv_obj_t* status_title = lv_label_create(root_);
     lv_label_set_text(status_title, "Link");
@@ -47,7 +47,7 @@ void SettingsScreen::onEnter() {
     status_label_ = lv_label_create(root_);
     lv_obj_set_style_text_font(status_label_, &lv_font_montserrat_20, LV_PART_MAIN);
     lv_obj_set_pos(status_label_, content_x, y);
-    y = static_cast<int16_t>(y + line_h + 10);
+    y = static_cast<int16_t>(y + line_h + layout_.pad_y);
 
     hint_label_ = lv_label_create(root_);
     lv_label_set_text(hint_label_, "Long press BOOT 2s to pair");

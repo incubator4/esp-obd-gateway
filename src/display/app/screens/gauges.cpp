@@ -12,7 +12,7 @@ void RpmScreen::onEnter() {
   styleScreenRoot(root_);
   lv_screen_load(root_);
 
-  createHeader(root_, "Engine RPM", layout_.header_h);
+  createHeader(root_, "Engine RPM", layout_);
   footer_label_ = createFooter(root_, layout_, nav_, false);
 
   ValueGauge::Config cfg{};
@@ -71,7 +71,7 @@ void SpeedScreen::onEnter() {
   styleScreenRoot(root_);
   lv_screen_load(root_);
 
-  createHeader(root_, "Speed", layout_.header_h);
+  createHeader(root_, "Speed", layout_);
   footer_label_ = createFooter(root_, layout_, nav_, false);
 
   ValueGauge::Config cfg{};

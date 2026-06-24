@@ -31,6 +31,10 @@ void alignValueStack(lv_obj_t* value, lv_obj_t* unit, lv_obj_t* arc, bool compac
     lv_obj_align_to(unit, value, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
 }
 
+int16_t scaleSlot(int16_t ref, uint16_t permille) {
+    return static_cast<int16_t>((static_cast<int32_t>(ref) * permille) / 1000);
+}
+
 }  // namespace
 
 void ValueGauge::create(lv_obj_t* parent, const GaugeSlot& slot, const Config& config) {
@@ -45,28 +49,30 @@ void ValueGauge::create(lv_obj_t* parent, const GaugeSlot& slot, const Config& c
     lv_obj_clear_flag(root_, LV_OBJ_FLAG_SCROLLABLE);
 
     const int16_t arc_size = slot.arc_size;
-    const int16_t arc_x = (slot.w - arc_size) / 2;
-    const int16_t arc_y = config.compact ? 4 : 8;
+    const lv_coord_t center_nudge = scaleSlot(slot.h, 90);
 
     arc_ = lv_arc_create(root_);
     lv_obj_set_size(arc_, arc_size, arc_size);
-    lv_obj_set_pos(arc_, arc_x, arc_y);
+    lv_obj_align(arc_, LV_ALIGN_CENTER, 0, center_nudge);
     lv_arc_set_rotation(arc_, 135);
     lv_arc_set_bg_angles(arc_, 0, 270);
     lv_arc_set_range(arc_, config.min_value, config.max_value);
     lv_arc_set_value(arc_, config.min_value);
     lv_obj_remove_style(arc_, nullptr, LV_PART_KNOB);
     lv_obj_clear_flag(arc_, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_set_style_arc_width(arc_, config.compact ? 6 : 8, LV_PART_MAIN);
+
+    const lv_coord_t stroke =
+        (slot.arc_stroke > 0) ? slot.arc_stroke : (config.compact ? 6 : 8);
+    lv_obj_set_style_arc_width(arc_, stroke, LV_PART_MAIN);
     lv_obj_set_style_arc_color(arc_, lv_color_hex(0x333333), LV_PART_MAIN);
-    lv_obj_set_style_arc_width(arc_, config.compact ? 6 : 8, LV_PART_INDICATOR);
+    lv_obj_set_style_arc_width(arc_, stroke, LV_PART_INDICATOR);
     lv_obj_set_style_arc_color(arc_, lv_color_hex(config.arc_color), LV_PART_INDICATOR);
 
     lv_obj_t* title = lv_label_create(root_);
     lv_label_set_text(title, config.title);
     lv_obj_set_style_text_color(title, lv_color_hex(0xAAAAAA), LV_PART_MAIN);
     lv_obj_set_style_text_font(title, titleFont(config.compact), LV_PART_MAIN);
-    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, config.compact ? 0 : 2);
+    lv_obj_align_to(title, arc_, LV_ALIGN_OUT_TOP_MID, 0, -2);
 
     value_label_ = lv_label_create(root_);
     lv_label_set_text(value_label_, "--");

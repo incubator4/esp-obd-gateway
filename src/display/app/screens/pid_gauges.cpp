@@ -98,7 +98,7 @@ void TelemGaugeScreen::onEnter() {
     styleScreenRoot(root_);
     lv_screen_load(root_);
 
-    createHeader(root_, cfg_.header_title, layout_.header_h);
+    createHeader(root_, cfg_.header_title, layout_);
     footer_label_ = createFooter(root_, layout_, nav_, false);
     gauge_.create(root_, layout_.singleGauge(), cfg_.gauge);
     refresh();
