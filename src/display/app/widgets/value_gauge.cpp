@@ -19,6 +19,18 @@ int32_t clampValue(int32_t value, int32_t min_v, int32_t max_v) {
     return std::max(min_v, std::min(value, max_v));
 }
 
+void styleCenteredLabel(lv_obj_t* label, const lv_font_t* font, lv_coord_t width) {
+    lv_obj_set_width(label, width);
+    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+    lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
+}
+
+void alignValueStack(lv_obj_t* value, lv_obj_t* unit, lv_obj_t* arc, bool compact) {
+    const lv_coord_t y_offset = compact ? -4 : -6;
+    lv_obj_align_to(value, arc, LV_ALIGN_CENTER, 0, y_offset);
+    lv_obj_align_to(unit, value, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
+}
+
 }  // namespace
 
 void ValueGauge::create(lv_obj_t* parent, const GaugeSlot& slot, const Config& config) {
@@ -59,14 +71,14 @@ void ValueGauge::create(lv_obj_t* parent, const GaugeSlot& slot, const Config& c
     value_label_ = lv_label_create(root_);
     lv_label_set_text(value_label_, "--");
     lv_obj_set_style_text_color(value_label_, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-    lv_obj_set_style_text_font(value_label_, valueFont(config.compact), LV_PART_MAIN);
-    lv_obj_align_to(value_label_, arc_, LV_ALIGN_CENTER, 0, config.compact ? -4 : -6);
+    styleCenteredLabel(value_label_, valueFont(config.compact), arc_size);
 
     unit_label_ = lv_label_create(root_);
     lv_label_set_text(unit_label_, config.unit);
     lv_obj_set_style_text_color(unit_label_, lv_color_hex(0x888888), LV_PART_MAIN);
-    lv_obj_set_style_text_font(unit_label_, &lv_font_montserrat_14, LV_PART_MAIN);
-    lv_obj_align_to(unit_label_, value_label_, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
+    styleCenteredLabel(unit_label_, &lv_font_montserrat_14, arc_size);
+
+    alignValueStack(value_label_, unit_label_, arc_, config.compact);
 }
 
 void ValueGauge::destroy() {
@@ -99,6 +111,7 @@ void ValueGauge::refreshLabels(int32_t value, bool stale) {
         lv_arc_set_value(arc_, config_.min_value);
         lv_obj_set_style_arc_color(arc_, lv_color_hex(config_.stale_color), LV_PART_INDICATOR);
         lv_obj_set_style_text_color(value_label_, lv_color_hex(0x666666), LV_PART_MAIN);
+        alignValueStack(value_label_, unit_label_, arc_, config_.compact);
         return;
     }
 
@@ -110,6 +123,7 @@ void ValueGauge::refreshLabels(int32_t value, bool stale) {
     char buf[16];
     std::snprintf(buf, sizeof(buf), "%ld", static_cast<long>(value));
     lv_label_set_text(value_label_, buf);
+    alignValueStack(value_label_, unit_label_, arc_, config_.compact);
 }
 
 }  // namespace ui
