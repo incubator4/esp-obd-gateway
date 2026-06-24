@@ -9,7 +9,7 @@ PORT  ?=
 PORT_FLAG := $(if $(PORT),--port $(PORT),)
 
 .PHONY: help build upload monitor flash clean ports
-.PHONY: gateway gateway-upload gateway-flash
+.PHONY: gateway gateway-upload gateway-flash gateway-fake gateway-fake-upload gateway-fake-flash
 .PHONY: display-c6 display-c6-upload display-c6-flash
 .PHONY: display-s3 display-s3-upload display-s3-flash
 
@@ -28,6 +28,8 @@ help: ## 显示可用命令
 	@echo "  make gateway            编译 gateway"
 	@echo "  make gateway-upload     烧录 gateway"
 	@echo "  make gateway-flash      烧录 + 监视"
+	@echo "  make gateway-fake       编译 gateway（fake OBD 数据）"
+	@echo "  make gateway-fake-flash 烧录 fake gateway + 监视"
 	@echo ""
 	@echo "显示端 C6 (Waveshare ESP32-C6-LCD-1.3):"
 	@echo "  make display-c6         编译 display_c6"
@@ -70,6 +72,15 @@ gateway-upload:
 
 gateway-flash:
 	$(MAKE) flash ENV=gateway PORT=$(PORT)
+
+gateway-fake:
+	$(MAKE) build ENV=gateway_fake
+
+gateway-fake-upload:
+	$(MAKE) upload ENV=gateway_fake PORT=$(PORT)
+
+gateway-fake-flash:
+	$(MAKE) flash ENV=gateway_fake PORT=$(PORT)
 
 # --- display_c6 ---
 display-c6:

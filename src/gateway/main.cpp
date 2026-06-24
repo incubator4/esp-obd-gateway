@@ -6,6 +6,9 @@
 #include "obd.h"
 #include "transport.h"
 
+#if GW_FAKE_OBD
+#include "fake_telemetry.h"
+#else
 static obd::ObdCan g_can;
 static obd::ObdIsoTp g_isotp(g_can);
 static obd::ObdDiagnostic g_diag(g_isotp);
@@ -15,6 +18,11 @@ static obd::ObdCollectorConfig g_coll_cfg{
     GW_OBD_STALE_MS,
 };
 static obd::ObdCollector g_collector(g_obd, g_coll_cfg);
+#endif
+
+#if GW_FAKE_OBD
+static gw::FakeTelemetry g_fake;
+#endif
 
 static obd::EspNow g_espnow;
 static uint16_t g_seq = 0;
@@ -23,6 +31,14 @@ static uint32_t g_last_log_ms = 0;
 static uint32_t g_telem_tx_count = 0;
 static bool g_can_ok = false;
 static bool g_espnow_ok = false;
+
+static const ObdTelemetry& currentTelemetry() {
+#if GW_FAKE_OBD
+    return g_fake.telemetry();
+#else
+    return g_collector.telemetry();
+#endif
+}
 
 static void sendPong(const uint8_t mac[6]) {
     ObdPacket pkt{};
@@ -33,7 +49,7 @@ static void sendPong(const uint8_t mac[6]) {
 static void sendPidResponse(const uint8_t mac[6], const ObdPidRequest& req) {
     ObdPidResponse rsp{};
     rsp.pid = req.pid;
-    rsp.ok = obd::telemPidValue(g_collector.telemetry(), req.pid, rsp.value) ? 1 : 0;
+    rsp.ok = obd::telemPidValue(currentTelemetry(), req.pid, rsp.value) ? 1 : 0;
 
     ObdPacket pkt{};
     obd::packetInit(&pkt, MSG_PID_RESPONSE, g_seq++, millis());
@@ -72,7 +88,7 @@ static void broadcastTelemetry(uint32_t now_ms) {
 
     ObdPacket pkt{};
     obd::packetInit(&pkt, MSG_TELEMETRY, g_seq++, now_ms);
-    const ObdTelemetry& telem = g_collector.telemetry();
+    const ObdTelemetry& telem = currentTelemetry();
     obd::packetSetPayload(&pkt, &telem, sizeof(telem));
     if (g_espnow.broadcast(pkt)) {
         ++g_telem_tx_count;
@@ -85,20 +101,33 @@ static void logHeartbeat(uint32_t now_ms) {
     }
     g_last_log_ms = now_ms;
 
-    const ObdTelemetry& t = g_collector.telemetry();
+    const ObdTelemetry& t = currentTelemetry();
     const obd::EspNowStats& es = g_espnow.stats();
+#if GW_FAKE_OBD
+    gwLogf("[GW] mode=fake espnow=%s telem_q=%lu tx_ok=%lu tx_fail=%lu last_tx=%s rpm=%u "
+           "speed=%u flags=0x%02X valid=0x%02X",
+           g_espnow_ok ? "ok" : "fail", static_cast<unsigned long>(g_telem_tx_count),
+           static_cast<unsigned long>(es.tx_ok), static_cast<unsigned long>(es.tx_fail),
+           g_espnow.lastSendOk() ? "ok" : "fail", t.rpm, t.speed_kmh, t.flags, t.valid_mask);
+#else
     gwLogf("[GW] can=%s espnow=%s telem_q=%lu tx_ok=%lu tx_fail=%lu last_tx=%s rpm=%u "
            "speed=%u flags=0x%02X valid=0x%02X",
            g_can_ok ? "ok" : "fail", g_espnow_ok ? "ok" : "fail",
            static_cast<unsigned long>(g_telem_tx_count),
            static_cast<unsigned long>(es.tx_ok), static_cast<unsigned long>(es.tx_fail),
            g_espnow.lastSendOk() ? "ok" : "fail", t.rpm, t.speed_kmh, t.flags, t.valid_mask);
+#endif
 }
 
 void setup() {
     gwLogBegin();
+#if GW_FAKE_OBD
+    gwLog("[GW] boot (fake OBD telemetry)");
+#else
     gwLog("[GW] boot");
+#endif
 
+#if !GW_FAKE_OBD
     obd::ObdCanConfig cfg{};
     cfg.pins.tx = GW_CAN_TX_PIN;
     cfg.pins.rx = GW_CAN_RX_PIN;
@@ -118,6 +147,7 @@ void setup() {
         gwLogf("[GW] CAN ready tx=%d rx=%d bitrate=%d", GW_CAN_TX_PIN, GW_CAN_RX_PIN,
                GW_CAN_BITRATE);
     }
+#endif
 
     obd::EspNowConfig esp_cfg{};
     esp_cfg.channel = GW_ESPNOW_CHANNEL;
@@ -130,20 +160,32 @@ void setup() {
                g_espnow.currentChannel());
     }
 
+#if GW_FAKE_OBD
+    if (g_espnow_ok) {
+        gwLog("[GW] fake telemetry gateway ready (broadcast ~10 Hz)");
+    } else {
+        gwLog("[GW] running in degraded mode — check ESP-NOW above");
+    }
+#else
     if (g_can_ok && g_espnow_ok) {
         gwLog("[GW] OBD gateway ready (broadcast telemetry)");
     } else {
         gwLog("[GW] running in degraded mode — check CAN / ESP-NOW above");
     }
+#endif
 }
 
 void loop() {
     const uint32_t now = millis();
 
+#if GW_FAKE_OBD
+    g_fake.update(now);
+#else
     if (g_can_ok) {
         g_collector.poll(now);
         g_can.recover();
     }
+#endif
     broadcastTelemetry(now);
     logHeartbeat(now);
 

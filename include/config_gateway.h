@@ -17,4 +17,9 @@
 /** ESP-NOW Wi-Fi 信道（须与 display 端一致） */
 #define GW_ESPNOW_CHANNEL 1
 
+/** 1 = 不读 OBD，广播模拟 telemetry（调 display 用） */
+#ifndef GW_FAKE_OBD
+#define GW_FAKE_OBD 0
+#endif
+
 #include "config_link.h"
