@@ -12,6 +12,9 @@ namespace ui {
 struct ScreenNavInfo {
     uint8_t index = 1;
     uint8_t total = 1;
+
+    ScreenNavInfo() = default;
+    ScreenNavInfo(uint8_t idx, uint8_t tot) : index(idx), total(tot) {}
 };
 
 void styleScreenRoot(lv_obj_t* root);
