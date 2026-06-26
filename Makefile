@@ -9,7 +9,14 @@ PORT  ?=
 
 PORT_FLAG := $(if $(PORT),--port $(PORT),)
 
-.PHONY: help build upload monitor flash clean ports
+.PHONY: release package-release
+
+release: package-release ## 编译 release 固件并打包到 dist/
+
+package-release: ## 将已编译的 firmware.bin 打包（需先 pio run）
+	pio run -e gateway -e display_c6_13 -e display_c6_147 -e display_s3_169
+	python3 scripts/package_release.py --version "$$(git describe --tags --always 2>/dev/null | sed 's/^v//' || echo dev)"
+
 .PHONY: gateway gateway-upload gateway-flash gateway-fake gateway-fake-upload gateway-fake-flash
 .PHONY: display-c6-13 display-c6-13-upload display-c6-13-flash
 .PHONY: display-c6-147 display-c6-147-upload display-c6-147-flash

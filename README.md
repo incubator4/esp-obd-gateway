@@ -51,6 +51,33 @@ make flash-display BOARD=c6_147 PORT=/dev/cu.usbmodem101
 
 显示端使用 **Arduino** 框架（两块 Waveshare 板均官方支持）。
 
+## CI / Release
+
+- **CI**：推送到 `main` 或 PR 时自动编译全部 PlatformIO 环境（见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)）。
+- **Release**：推送 `v*` 标签（如 `v1.0.0`）时构建固件并发布到 GitHub Releases。
+
+```bash
+# 本地打包（与 CI release 相同产物）
+make release
+
+# 发布新版本
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Release 包内容：
+
+| 文件 | 说明 |
+|------|------|
+| `gateway.bin` | 4D GEN4-S3 网关 |
+| `display-c6-13.bin` | C6 1.3" 显示端 |
+| `display-c6-147.bin` | C6 1.47" 显示端（touch 自动探测） |
+| `display-s3-169.bin` | S3 1.69" 显示端（touch 自动探测） |
+| `manifest.json` | 版本、SHA256、板型元数据 |
+| `FLASHING.md` | 刷写说明 |
+
+也可在 GitHub Actions 中手动触发 **Release** workflow 指定版本号。
+
 ## 配置
 
 - 网关 CAN / ESP-NOW：`include/config_gateway.h`

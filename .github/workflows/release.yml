@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 1.0.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: meta
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            .pio
+          key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
+          restore-keys: |
+            pio-${{ runner.os }}-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Build release firmware
+        run: |
+          pio run \
+            -e gateway \
+            -e display_c6_13 \
+            -e display_c6_147 \
+            -e display_s3_169
+
+      - name: Package release artifacts
+        run: python scripts/package_release.py --version "${{ steps.meta.outputs.version }}"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-v${{ steps.meta.outputs.version }}
+          path: |
+            dist/esp-obd-gateway-v${{ steps.meta.outputs.version }}/**
+            dist/esp-obd-gateway-v${{ steps.meta.outputs.version }}.zip
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: v${{ steps.meta.outputs.version }}
+          generate_release_notes: true
+          files: |
+            dist/esp-obd-gateway-v${{ steps.meta.outputs.version }}.zip
+            dist/esp-obd-gateway-v${{ steps.meta.outputs.version }}/*.bin
+            dist/esp-obd-gateway-v${{ steps.meta.outputs.version }}/manifest.json
+            dist/esp-obd-gateway-v${{ steps.meta.outputs.version }}/FLASHING.md

@@ -1,3 +1,4 @@
 .pio
 target
 include/build_info.h
+dist/
