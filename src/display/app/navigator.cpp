@@ -141,6 +141,24 @@ void Navigator::handleInput() {
         return;
     }
 
+    if (input_->swipeNext()) {
+#if defined(DISPLAY_DEBUG_BOOT)
+        Serial.printf("[NAV] swipe left -> next (current=%s)\n",
+                      current_ != nullptr ? current_->title() : "null");
+#endif
+        next();
+        return;
+    }
+
+    if (input_->swipePrev()) {
+#if defined(DISPLAY_DEBUG_BOOT)
+        Serial.printf("[NAV] swipe right -> prev (current=%s)\n",
+                      current_ != nullptr ? current_->title() : "null");
+#endif
+        prev();
+        return;
+    }
+
     if (input_->buttonClicked(disp::InputButton::Boot)) {
 #if defined(DISPLAY_DEBUG_BOOT)
         Serial.printf("[NAV] BOOT -> next (current=%s)\n",

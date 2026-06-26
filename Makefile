@@ -1,8 +1,9 @@
 # PlatformIO shortcuts for esp-obd-gateway
-# Usage: make [target] [ENV=gateway] [PORT=/dev/cu.usbserial-xxx]
+# Usage: make [target] [ENV=gateway] [BOARD=c6_147] [PORT=/dev/cu.usbserial-xxx]
 
 PIO   ?= pio
 ENV   ?= gateway
+BOARD ?= c6_13
 BAUD  ?= 115200
 PORT  ?=
 
@@ -10,19 +11,25 @@ PORT_FLAG := $(if $(PORT),--port $(PORT),)
 
 .PHONY: help build upload monitor flash clean ports
 .PHONY: gateway gateway-upload gateway-flash gateway-fake gateway-fake-upload gateway-fake-flash
-.PHONY: display-c6 display-c6-upload display-c6-flash
-.PHONY: display-s3 display-s3-upload display-s3-flash
+.PHONY: display-c6-13 display-c6-13-upload display-c6-13-flash
+.PHONY: display-c6-147 display-c6-147-upload display-c6-147-flash
+.PHONY: display-s3-169 display-s3-169-upload display-s3-169-flash
+.PHONY: flash-display build-display
 
 help: ## 显示可用命令
 	@echo "esp-obd-gateway — PlatformIO shortcuts"
 	@echo ""
-	@echo "通用（默认 ENV=gateway，可用 ENV=display_c6 等覆盖）:"
+	@echo "通用（默认 ENV=gateway，可用 ENV=display_c6_147 等覆盖）:"
 	@echo "  make build              编译"
 	@echo "  make upload             烧录"
 	@echo "  make monitor            串口监视 (115200)"
 	@echo "  make flash              烧录后打开串口监视"
 	@echo "  make clean              清理构建产物"
 	@echo "  make ports              列出串口设备"
+	@echo ""
+	@echo "显示端统一入口（按芯片族 × 屏尺寸，touch 自动探测）:"
+	@echo "  make build-display BOARD=c6_13|c6_147|s3_169"
+	@echo "  make flash-display BOARD=c6_147 PORT=/dev/cu.usbmodem101"
 	@echo ""
 	@echo "网关 (4D GEN4-S3):"
 	@echo "  make gateway            编译 gateway"
@@ -31,19 +38,17 @@ help: ## 显示可用命令
 	@echo "  make gateway-fake       编译 gateway（fake OBD 数据）"
 	@echo "  make gateway-fake-flash 烧录 fake gateway + 监视"
 	@echo ""
-	@echo "显示端 C6 (Waveshare ESP32-C6-LCD-1.3):"
-	@echo "  make display-c6         编译 display_c6"
-	@echo "  make display-c6-upload  烧录 display_c6"
-	@echo "  make display-c6-flash   烧录 + 监视"
+	@echo "显示端 C6 1.3\" (ESP32-C6-LCD-1.3):"
+	@echo "  make display-c6-13         编译 display_c6_13"
+	@echo "  make display-c6-13-flash   烧录 + 监视"
 	@echo ""
-	@echo "显示端 S3 (Waveshare ESP32-S3-Touch-LCD-1.69):"
-	@echo "  make display-s3         编译 display_s3"
-	@echo "  make display-s3-upload  烧录 display_s3"
-	@echo "  make display-s3-flash   烧录 + 监视"
+	@echo "显示端 C6 1.47\" (ESP32-C6-LCD/Touch-LCD-1.47):"
+	@echo "  make display-c6-147        编译 display_c6_147"
+	@echo "  make display-c6-147-flash  烧录 + 监视"
 	@echo ""
-	@echo "示例:"
-	@echo "  make gateway-flash PORT=/dev/cu.usbmodem101"
-	@echo "  make upload ENV=display_c6"
+	@echo "显示端 S3 1.69\" (ESP32-S3-LCD/Touch-LCD-1.69):"
+	@echo "  make display-s3-169        编译 display_s3_169"
+	@echo "  make display-s3-169-flash  烧录 + 监视"
 
 build: ## 编译当前环境
 	$(PIO) run -e $(ENV)
@@ -62,6 +67,12 @@ clean: ## 清理构建产物
 
 ports: ## 列出可用串口
 	$(PIO) device list
+
+build-display:
+	$(PIO) run -e display_$(BOARD)
+
+flash-display:
+	$(PIO) run -e display_$(BOARD) -t upload -t monitor $(PORT_FLAG)
 
 # --- gateway ---
 gateway:
@@ -82,22 +93,32 @@ gateway-fake-upload:
 gateway-fake-flash:
 	$(MAKE) flash ENV=gateway_fake PORT=$(PORT)
 
-# --- display_c6 ---
-display-c6:
-	$(MAKE) build ENV=display_c6
+# --- display_c6_13 ---
+display-c6-13:
+	$(MAKE) build ENV=display_c6_13
 
-display-c6-upload:
-	$(MAKE) upload ENV=display_c6 PORT=$(PORT)
+display-c6-13-upload:
+	$(MAKE) upload ENV=display_c6_13 PORT=$(PORT)
 
-display-c6-flash:
-	$(MAKE) flash ENV=display_c6 PORT=$(PORT)
+display-c6-13-flash:
+	$(MAKE) flash ENV=display_c6_13 PORT=$(PORT)
 
-# --- display_s3 ---
-display-s3:
-	$(MAKE) build ENV=display_s3
+# --- display_c6_147 ---
+display-c6-147:
+	$(MAKE) build ENV=display_c6_147
 
-display-s3-upload:
-	$(MAKE) upload ENV=display_s3 PORT=$(PORT)
+display-c6-147-upload:
+	$(MAKE) upload ENV=display_c6_147 PORT=$(PORT)
 
-display-s3-flash:
-	$(MAKE) flash ENV=display_s3 PORT=$(PORT)
+display-c6-147-flash:
+	$(MAKE) flash ENV=display_c6_147 PORT=$(PORT)
+
+# --- display_s3_169 ---
+display-s3-169:
+	$(MAKE) build ENV=display_s3_169
+
+display-s3-169-upload:
+	$(MAKE) upload ENV=display_s3_169 PORT=$(PORT)
+
+display-s3-169-flash:
+	$(MAKE) flash ENV=display_s3_169 PORT=$(PORT)

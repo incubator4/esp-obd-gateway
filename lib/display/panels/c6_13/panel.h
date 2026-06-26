@@ -1,13 +1,13 @@
 #pragma once
 
-#include "config_display_c6.h"
+#include "display_profiles.h"
 #include "core/input.h"
 #include "core/panel.h"
 
 namespace disp {
 
-/** Waveshare ESP32-C6-LCD-1.3：240×240，无触摸，BOOT 键 */
-class C6Lcd13Panel : public Panel {
+/** Waveshare ESP32-C6-LCD-1.3：240×240 ST7789，BOOT 键 */
+class C613Panel : public Panel {
 public:
     bool begin() override;
     PanelSize size() const override;
@@ -19,7 +19,7 @@ private:
     bool running_ = false;
 };
 
-class C6Lcd13Input : public Input {
+class C613Input : public Input {
 public:
     bool begin() override;
     void poll() override;

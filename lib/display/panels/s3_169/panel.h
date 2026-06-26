@@ -1,13 +1,13 @@
 #pragma once
 
-#include "config_display_s3.h"
+#include "display_profiles.h"
 #include "core/input.h"
 #include "core/panel.h"
 
 namespace disp {
 
-/** Waveshare ESP32-S3-Touch-LCD-1.69：240×280 + CST816T */
-class S3Touch169Panel : public Panel {
+/** Waveshare ESP32-S3-LCD/Touch-LCD-1.69：ST7789 + optional CST816T */
+class S3169Panel : public Panel {
 public:
     bool begin() override;
     PanelSize size() const override;
@@ -19,12 +19,12 @@ private:
     bool running_ = false;
 };
 
-class S3Touch169Input : public Input {
+class S3169Input : public Input {
 public:
     bool begin() override;
     void poll() override;
 
-    bool hasTouch() const override { return touch_active_; }
+    bool hasTouch() const override { return touch_ready_; }
     bool touchPoint(int16_t& x, int16_t& y) const override;
 
     bool buttonDown(InputButton btn) const override;
@@ -32,6 +32,7 @@ public:
     bool buttonLongPressed(InputButton btn) override;
 
 private:
+    bool touch_ready_ = false;
     bool touch_active_ = false;
     int16_t touch_x_ = 0;
     int16_t touch_y_ = 0;

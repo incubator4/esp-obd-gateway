@@ -24,6 +24,10 @@ public:
     virtual bool buttonDown(InputButton btn) const = 0;
     virtual bool buttonClicked(InputButton btn) = 0;
     virtual bool buttonLongPressed(InputButton btn) = 0;
+
+    /** 水平滑动切屏；默认无手势，由触摸板实现。 */
+    virtual bool swipeNext() { return false; }
+    virtual bool swipePrev() { return false; }
 };
 
 }  // namespace disp

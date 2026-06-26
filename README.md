@@ -15,8 +15,9 @@ ESP32 汽车 OBD-II 数据网关：网关从 CAN 读数据，经 **ESP-NOW** 发
 | 环境      | 板型                            | 职责                            |
 | --------- | ------------------------------- | ------------------------------- |
 | `gateway` | `4d_systems_esp32s3_gen4_r8n16` | CAN 收发、OBD PID、ESP-NOW 广播 |
-| `display_c6` | Waveshare ESP32-C6-LCD-1.3 | ESP-NOW、240×240、BOOT 切屏（转速→时速→设置） |
-| `display_s3` | Waveshare ESP32-S3-Touch-LCD-1.69 | 触摸、IMU 姿态屏、ESP-NOW |
+| `display_c6_13` | Waveshare ESP32-C6-LCD-1.3 | ESP-NOW、240×240、BOOT 切屏 |
+| `display_c6_147` | Waveshare ESP32-C6-LCD/Touch-LCD-1.47 | ESP-NOW、172×320、触摸自动探测 |
+| `display_s3_169` | Waveshare ESP32-S3-LCD/Touch-LCD-1.69 | 触摸自动探测、IMU 姿态屏、ESP-NOW |
 
 ## 硬件接线
 
@@ -30,17 +31,22 @@ ESP32 汽车 OBD-II 数据网关：网关从 CAN 读数据，经 **ESP-NOW** 发
 
 | 板型 | 环境 | 分辨率 | 输入 |
 |------|------|--------|------|
-| [ESP32-C6-LCD-1.3](https://docs.waveshare.com/ESP32-C6-LCD-1.3) | `display_c6` | 240×240 | BOOT 切屏 |
-| [ESP32-S3-Touch-LCD-1.69](https://docs.waveshare.com/ESP32-S3-Touch-LCD-1.69) | `display_s3` | 240×280 | 触摸 + PWR/BOOT |
+| [ESP32-C6-LCD-1.3](https://docs.waveshare.com/ESP32-C6-LCD-1.3) | `display_c6_13` | 240×240 | BOOT 切屏 |
+| [ESP32-C6-LCD/Touch-LCD-1.47](https://docs.waveshare.com/ESP32-C6-Touch-LCD-1.47) | `display_c6_147` | 172×320 | 触摸自动探测 / BOOT |
+| [ESP32-S3-LCD/Touch-LCD-1.69](https://docs.waveshare.com/ESP32-S3-Touch-LCD-1.69) | `display_s3_169` | 240×280 | 触摸自动探测 + PWR/BOOT |
 
-引脚见 `include/config_display_c6.h` / `config_display_s3.h`。
+引脚见 `include/display_profiles.h`（按 `DISPLAY_PROFILE_*` 选择）。
 
 ## 构建
 
 ```bash
 pio run -e gateway       # 刷到 4D GEN4-S3 网关
-pio run -e display_c6    # Waveshare C6-LCD-1.3
-pio run -e display_s3    # Waveshare S3-Touch-LCD-1.69
+pio run -e display_c6_13     # Waveshare C6-LCD-1.3
+pio run -e display_c6_147   # Waveshare C6-LCD/Touch-LCD-1.47（touch 自动探测）
+pio run -e display_s3_169   # Waveshare S3-LCD/Touch-LCD-1.69（touch 自动探测）
+
+# 或统一入口
+make flash-display BOARD=c6_147 PORT=/dev/cu.usbmodem101
 ```
 
 显示端使用 **Arduino** 框架（两块 Waveshare 板均官方支持）。
@@ -48,7 +54,7 @@ pio run -e display_s3    # Waveshare S3-Touch-LCD-1.69
 ## 配置
 
 - 网关 CAN / ESP-NOW：`include/config_gateway.h`
-- 显示板配置：`include/config_display_c6.h` / `config_display_s3.h`
+- 显示板配置：`include/display_profiles.h`
 - 协议定义：`include/protocol.h`
 
 ## 数据协议

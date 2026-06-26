@@ -1,35 +1,54 @@
 #include "board/factory.h"
 
-#if defined(DISPLAY_BOARD_C6_LCD_13)
+#if defined(DISPLAY_PROFILE_C6_13)
 
-#include "panels/c6_lcd_13/panel.h"
+#include "panels/c6_13/panel.h"
 
 namespace disp {
 
-static C6Lcd13Panel g_panel;
-static C6Lcd13Input g_input;
+static C613Panel g_panel;
+static C613Input g_input;
 
 Panel* createPanel() { return &g_panel; }
 Input* createInput() { return &g_input; }
 
 void registerFeatures(FeatureRegistry& registry) {
     (void)registry;
-    // C6 板暂无板载 IMU 等扩展
 }
 
 ImuAttitudeFeature* imuAttitudeFeature() { return nullptr; }
 
 }  // namespace disp
 
-#elif defined(DISPLAY_BOARD_S3_TOUCH_169)
+#elif defined(DISPLAY_PROFILE_C6_147)
 
-#include "features/imu_attitude.h"
-#include "panels/s3_touch_169/panel.h"
+#include "panels/c6_147/panel.h"
 
 namespace disp {
 
-static S3Touch169Panel g_panel;
-static S3Touch169Input g_input;
+static C6147Panel g_panel;
+static C6147Input g_input;
+
+Panel* createPanel() { return &g_panel; }
+Input* createInput() { return &g_input; }
+
+void registerFeatures(FeatureRegistry& registry) {
+    (void)registry;
+}
+
+ImuAttitudeFeature* imuAttitudeFeature() { return nullptr; }
+
+}  // namespace disp
+
+#elif defined(DISPLAY_PROFILE_S3_169)
+
+#include "features/imu_attitude.h"
+#include "panels/s3_169/panel.h"
+
+namespace disp {
+
+static S3169Panel g_panel;
+static S3169Input g_input;
 static ImuAttitudeFeature g_imu;
 
 Panel* createPanel() { return &g_panel; }

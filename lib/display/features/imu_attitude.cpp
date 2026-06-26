@@ -3,9 +3,9 @@
 #include <Arduino.h>
 #include <cstdio>
 
-#if defined(DISPLAY_BOARD_S3_TOUCH_169)
+#if defined(DISPLAY_PROFILE_S3_169)
 
-#include "config_display_s3.h"
+#include "display_profiles.h"
 
 #include <Wire.h>
 

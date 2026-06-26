@@ -9,14 +9,12 @@
 #include "protocol.h"
 #include "transport.h"
 
-#if defined(DISPLAY_BOARD_C6_LCD_13)
+#if defined(DISPLAY_CHIP_C6)
 #include "board/c6/register.h"
-#include "config_display_c6.h"
-#elif defined(DISPLAY_BOARD_S3_TOUCH_169)
+#elif defined(DISPLAY_CHIP_S3)
 #include "board/s3/register.h"
-#include "config_display_s3.h"
 #else
-#error "Define DISPLAY_BOARD_C6_LCD_13 or DISPLAY_BOARD_S3_TOUCH_169"
+#error "Define DISPLAY_PROFILE_C6_13, DISPLAY_PROFILE_C6_147, or DISPLAY_PROFILE_S3_169"
 #endif
 
 static disp::Panel* g_panel = nullptr;
@@ -89,7 +87,7 @@ void setup() {
     }
     delay(100);
     Serial.println();
-    Serial.println("[DISP] boot");
+    Serial.printf("[DISP] boot profile=%s\n", DISPLAY_PROFILE_NAME);
 
     g_panel = disp::createPanel();
     g_input = disp::createInput();
@@ -109,9 +107,9 @@ void setup() {
 
     g_nav.bindInput(g_input);
 
-#if defined(DISPLAY_BOARD_C6_LCD_13)
+#if defined(DISPLAY_CHIP_C6)
     ui::registerC6Screens(g_nav, g_panel->size());
-#elif defined(DISPLAY_BOARD_S3_TOUCH_169)
+#elif defined(DISPLAY_CHIP_S3)
     ui::registerS3Screens(g_nav, g_panel->size());
 #endif
     g_nav.restoreSavedScreen();

@@ -1,4 +1,6 @@
-#include "panels/c6_lcd_13/panel.h"
+#include "panels/c6_13/panel.h"
+
+#if defined(DISPLAY_PROFILE_C6_13)
 
 #include "config_link.h"
 
@@ -25,7 +27,7 @@ void logPinLevel(uint8_t pin, const char* label) {
 
 }  // namespace
 
-bool C6Lcd13Panel::begin() {
+bool C613Panel::begin() {
     pinMode(DISP_C6_LCD_BL, OUTPUT);
     digitalWrite(DISP_C6_LCD_BL, HIGH);
 
@@ -35,22 +37,22 @@ bool C6Lcd13Panel::begin() {
                                DISP_C6_VER_RES);
 
     if (g_gfx == nullptr || !g_gfx->begin()) {
-        Serial.println("[C6] ST7789 init failed");
+        Serial.println("[C6-1.3] ST7789 init failed");
         return false;
     }
 
     g_gfx->fillScreen(RGB565_BLACK);
     setBacklight(80);
     running_ = true;
-    Serial.println("[C6] ST7789 ready");
+    Serial.println("[C6-1.3] ST7789 ready");
     return true;
 }
 
-PanelSize C6Lcd13Panel::size() const {
+PanelSize C613Panel::size() const {
     return {DISP_C6_HOR_RES, DISP_C6_VER_RES};
 }
 
-void C6Lcd13Panel::setBacklight(uint8_t percent) {
+void C613Panel::setBacklight(uint8_t percent) {
     if (percent > 100) {
         percent = 100;
     }
@@ -71,8 +73,8 @@ void C6Lcd13Panel::setBacklight(uint8_t percent) {
     ledcWrite(DISP_C6_LCD_BL, static_cast<uint32_t>((percent * 255U) / 100U));
 }
 
-void C6Lcd13Panel::flushArea(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
-                              const uint16_t* rgb565) {
+void C613Panel::flushArea(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
+                          const uint16_t* rgb565) {
     if (!running_ || g_gfx == nullptr || rgb565 == nullptr) {
         return;
     }
@@ -90,7 +92,7 @@ void C6Lcd13Panel::flushArea(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
 #endif
 }
 
-bool C6Lcd13Input::begin() {
+bool C613Input::begin() {
     pinMode(DISP_C6_BOOT_PIN, INPUT_PULLUP);
     boot_raw_prev_ = digitalRead(DISP_C6_BOOT_PIN);
     boot_pressed_prev_ = boot_raw_prev_ == LOW;
@@ -106,10 +108,11 @@ bool C6Lcd13Input::begin() {
     pinMode(0, INPUT_PULLUP);
     logPinLevel(0, "probe GPIO0");
 #endif
+    Serial.println("[C6-1.3] input: BOOT only (no touch bus)");
     return true;
 }
 
-void C6Lcd13Input::poll() {
+void C613Input::poll() {
     const int raw = digitalRead(DISP_C6_BOOT_PIN);
     const uint32_t now = millis();
     const bool pressed = raw == LOW;
@@ -159,20 +162,20 @@ void C6Lcd13Input::poll() {
     }
 }
 
-bool C6Lcd13Input::touchPoint(int16_t& x, int16_t& y) const {
+bool C613Input::touchPoint(int16_t& x, int16_t& y) const {
     (void)x;
     (void)y;
     return false;
 }
 
-bool C6Lcd13Input::buttonDown(InputButton btn) const {
+bool C613Input::buttonDown(InputButton btn) const {
     if (btn == InputButton::Boot) {
         return digitalRead(DISP_C6_BOOT_PIN) == LOW;
     }
     return false;
 }
 
-bool C6Lcd13Input::buttonClicked(InputButton btn) {
+bool C613Input::buttonClicked(InputButton btn) {
     if (btn == InputButton::Boot && boot_click_pending_) {
         boot_click_pending_ = false;
 #if defined(DISPLAY_DEBUG_BOOT)
@@ -183,7 +186,7 @@ bool C6Lcd13Input::buttonClicked(InputButton btn) {
     return false;
 }
 
-bool C6Lcd13Input::buttonLongPressed(InputButton btn) {
+bool C613Input::buttonLongPressed(InputButton btn) {
     if (btn == InputButton::Boot && boot_long_pending_) {
         boot_long_pending_ = false;
         return true;
@@ -192,3 +195,5 @@ bool C6Lcd13Input::buttonLongPressed(InputButton btn) {
 }
 
 }  // namespace disp
+
+#endif  // DISPLAY_PROFILE_C6_13
