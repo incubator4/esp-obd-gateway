@@ -35,23 +35,33 @@ jobs:
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
 
-      - name: Cache PlatformIO
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.platformio
-            .pio
-          key: pio-${{ runner.os }}-54.03.20-${{ hashFiles('platformio.ini') }}
-          restore-keys: |
-            pio-${{ runner.os }}-54.03.20-
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: .github/requirements-ci.txt
+
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-pkgs-${{ runner.os }}-54.03.20-${{ hashFiles('platformio.ini', '.github/requirements-ci.txt') }}
+          restore-keys: |
+            pio-pkgs-${{ runner.os }}-54.03.20-
+
+      - name: Cache PlatformIO build
+        uses: actions/cache@v4
+        with:
+          path: |
+            .pio
+            .cache/pio
+          key: pio-build-${{ runner.os }}-54.03.20-${{ hashFiles('platformio.ini') }}
+          restore-keys: |
+            pio-build-${{ runner.os }}-54.03.20-
 
       - name: Install PlatformIO
-        run: pip install platformio
+        run: pip install -r .github/requirements-ci.txt
 
       - name: Build release firmware
         run: |

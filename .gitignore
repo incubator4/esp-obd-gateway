@@ -1,4 +1,5 @@
 .pio
+.cache
 target
 include/build_info.h
 dist/
