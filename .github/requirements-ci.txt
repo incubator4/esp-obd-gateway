@@ -1,0 +1,2 @@
+# CI-only: pin PlatformIO Core for reproducible builds and pip cache keys.
+platformio==6.1.18
