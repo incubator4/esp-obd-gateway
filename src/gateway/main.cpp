@@ -9,14 +9,18 @@
 #if GW_FAKE_OBD
 #include "fake_telemetry.h"
 #else
+static obd::ObdCollectorConfig makeCollectorConfig() {
+    obd::ObdCollectorConfig cfg;
+    cfg.poll_interval_ms = GW_OBD_POLL_MS;
+    cfg.stale_timeout_ms = GW_OBD_STALE_MS;
+    return cfg;
+}
+
 static obd::ObdCan g_can;
 static obd::ObdIsoTp g_isotp(g_can);
 static obd::ObdDiagnostic g_diag(g_isotp);
 static obd::EspObdII g_obd(g_diag);
-static obd::ObdCollectorConfig g_coll_cfg{
-    GW_OBD_POLL_MS,
-    GW_OBD_STALE_MS,
-};
+static obd::ObdCollectorConfig g_coll_cfg = makeCollectorConfig();
 static obd::ObdCollector g_collector(g_obd, g_coll_cfg);
 #endif
 

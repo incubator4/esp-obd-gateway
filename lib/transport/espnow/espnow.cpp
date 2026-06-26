@@ -62,12 +62,16 @@ void configureWifiRadio(uint8_t channel) {
 }
 
 void configureLegacyPeerRate(const uint8_t mac[6]) {
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 4, 0)
     esp_now_rate_config_t rate_cfg = {};
     rate_cfg.phymode = WIFI_PHY_MODE_11G;
     rate_cfg.rate = WIFI_PHY_RATE_6M;
     rate_cfg.ersu = false;
     rate_cfg.dcm = false;
     esp_now_set_peer_rate_config(mac, &rate_cfg);
+#else
+    (void)mac;
+#endif
 }
 
 }  // namespace

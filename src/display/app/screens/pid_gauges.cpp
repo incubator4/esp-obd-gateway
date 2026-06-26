@@ -11,78 +11,68 @@ constexpr size_t kPidGaugeCount = 10;
 
 TelemGaugeScreen g_pid_gauges[kPidGaugeCount];
 
-constexpr TelemGaugeScreen::Init kPidGaugeDefs[kPidGaugeCount] = {
-    {
-        ScreenId::EngineLoad,
-        "Engine Load",
-        ValueGauge::Config{"LOAD", "%", 0, 100, 0xFF6B35},
-        TelemGaugeScreen::Field::EngineLoad,
-        TELEM_VALID_ENGINE_LOAD,
-    },
-    {
-        ScreenId::CoolantTemp,
-        "Coolant Temp",
-        ValueGauge::Config{"COOLANT", "C", -40, 120, 0x00A8FF},
-        TelemGaugeScreen::Field::CoolantTemp,
-        TELEM_VALID_COOLANT,
-    },
-    {
-        ScreenId::FuelPressure,
-        "Fuel Pressure",
-        ValueGauge::Config{"FUEL", "kPa", 0, 765, 0xFFD166},
-        TelemGaugeScreen::Field::FuelPressure,
-        TELEM_VALID_FUEL_PRESSURE,
-    },
-    {
-        ScreenId::IntakeMap,
-        "Intake Pressure",
-        ValueGauge::Config{"MAP", "kPa", 0, 255, 0x9B5DE5},
-        TelemGaugeScreen::Field::IntakeMap,
-        TELEM_VALID_INTAKE_MAP,
-    },
-    {
-        ScreenId::TimingAdvance,
-        "Ignition Advance",
-        ValueGauge::Config{"TIMING", "deg", -64, 64, 0xF15BB5, 0x555555, false, 2, true},
-        TelemGaugeScreen::Field::TimingAdvance,
-        TELEM_VALID_TIMING_ADVANCE,
-    },
-    {
-        ScreenId::IntakeTemp,
-        "Intake Temp",
-        ValueGauge::Config{"IAT", "C", -40, 80, 0x00D4AA},
-        TelemGaugeScreen::Field::IntakeTemp,
-        TELEM_VALID_INTAKE_TEMP,
-    },
-    {
-        ScreenId::Maf,
-        "Air Flow",
-        ValueGauge::Config{"MAF", "g/s", 0, 200, 0x06D6A0, 0x555555, false, 10, true},
-        TelemGaugeScreen::Field::Maf,
-        TELEM_VALID_MAF,
-    },
-    {
-        ScreenId::Throttle,
-        "Throttle",
-        ValueGauge::Config{"TPS", "%", 0, 100, 0xEF476F},
-        TelemGaugeScreen::Field::Throttle,
-        TELEM_VALID_THROTTLE,
-    },
-    {
-        ScreenId::TurboPressure,
-        "Turbo Pressure",
-        ValueGauge::Config{"BOOST", "kPa", 0, 300, 0x118AB2},
-        TelemGaugeScreen::Field::TurboPressure,
-        TELEM_VALID_TURBO_PRESSURE,
-    },
-    {
-        ScreenId::TurboRpm,
-        "Turbo RPM",
-        ValueGauge::Config{"T-RPM", "rpm", 0, 200000, 0x073B4C},
-        TelemGaugeScreen::Field::TurboRpm,
-        TELEM_VALID_TURBO_RPM,
-    },
+struct PidGaugeDef {
+    ScreenId screen_id;
+    const char* header_title;
+    const char* gauge_title;
+    const char* gauge_unit;
+    int32_t min_value;
+    int32_t max_value;
+    uint32_t arc_color;
+    uint32_t stale_color;
+    bool compact;
+    uint16_t value_scale;
+    bool show_decimal;
+    TelemGaugeScreen::Field field;
+    uint16_t valid_bit;
 };
+
+constexpr PidGaugeDef kPidGaugeDefs[kPidGaugeCount] = {
+    {ScreenId::EngineLoad, "Engine Load", "LOAD", "%", 0, 100, 0xFF6B35, 0x555555, false, 1,
+     false, TelemGaugeScreen::Field::EngineLoad, TELEM_VALID_ENGINE_LOAD},
+    {ScreenId::CoolantTemp, "Coolant Temp", "COOLANT", "C", -40, 120, 0x00A8FF, 0x555555, false,
+     1, false, TelemGaugeScreen::Field::CoolantTemp, TELEM_VALID_COOLANT},
+    {ScreenId::FuelPressure, "Fuel Pressure", "FUEL", "kPa", 0, 765, 0xFFD166, 0x555555, false, 1,
+     false, TelemGaugeScreen::Field::FuelPressure, TELEM_VALID_FUEL_PRESSURE},
+    {ScreenId::IntakeMap, "Intake Pressure", "MAP", "kPa", 0, 255, 0x9B5DE5, 0x555555, false, 1,
+     false, TelemGaugeScreen::Field::IntakeMap, TELEM_VALID_INTAKE_MAP},
+    {ScreenId::TimingAdvance, "Ignition Advance", "TIMING", "deg", -64, 64, 0xF15BB5, 0x555555,
+     false, 2, true, TelemGaugeScreen::Field::TimingAdvance, TELEM_VALID_TIMING_ADVANCE},
+    {ScreenId::IntakeTemp, "Intake Temp", "IAT", "C", -40, 80, 0x00D4AA, 0x555555, false, 1, false,
+     TelemGaugeScreen::Field::IntakeTemp, TELEM_VALID_INTAKE_TEMP},
+    {ScreenId::Maf, "Air Flow", "MAF", "g/s", 0, 200, 0x06D6A0, 0x555555, false, 10, true,
+     TelemGaugeScreen::Field::Maf, TELEM_VALID_MAF},
+    {ScreenId::Throttle, "Throttle", "TPS", "%", 0, 100, 0xEF476F, 0x555555, false, 1, false,
+     TelemGaugeScreen::Field::Throttle, TELEM_VALID_THROTTLE},
+    {ScreenId::TurboPressure, "Turbo Pressure", "BOOST", "kPa", 0, 300, 0x118AB2, 0x555555, false,
+     1, false, TelemGaugeScreen::Field::TurboPressure, TELEM_VALID_TURBO_PRESSURE},
+    {ScreenId::TurboRpm, "Turbo RPM", "T-RPM", "rpm", 0, 200000, 0x073B4C, 0x555555, false, 1,
+     false, TelemGaugeScreen::Field::TurboRpm, TELEM_VALID_TURBO_RPM},
+};
+
+ValueGauge::Config makeGaugeConfig(const PidGaugeDef& def) {
+    ValueGauge::Config cfg;
+    cfg.title = def.gauge_title;
+    cfg.unit = def.gauge_unit;
+    cfg.min_value = def.min_value;
+    cfg.max_value = def.max_value;
+    cfg.arc_color = def.arc_color;
+    cfg.stale_color = def.stale_color;
+    cfg.compact = def.compact;
+    cfg.value_scale = def.value_scale;
+    cfg.show_decimal = def.show_decimal;
+    return cfg;
+}
+
+TelemGaugeScreen::Init makeScreenInit(const PidGaugeDef& def) {
+    TelemGaugeScreen::Init init;
+    init.screen_id = def.screen_id;
+    init.header_title = def.header_title;
+    init.gauge = makeGaugeConfig(def);
+    init.field = def.field;
+    init.valid_bit = def.valid_bit;
+    return init;
+}
 
 }  // namespace
 
@@ -177,8 +167,10 @@ size_t registerPidGaugeScreens(Navigator& nav, TelemetryRegistry& telem,
                                const PanelLayout& layout, uint8_t start_page,
                                uint8_t total_pages) {
     for (size_t i = 0; i < kPidGaugeCount; ++i) {
-        const ScreenNavInfo page_nav{static_cast<uint8_t>(start_page + i), total_pages};
-        g_pid_gauges[i].init(layout, page_nav, kPidGaugeDefs[i]);
+        ScreenNavInfo page_nav;
+        page_nav.index = static_cast<uint8_t>(start_page + i);
+        page_nav.total = total_pages;
+        g_pid_gauges[i].init(layout, page_nav, makeScreenInit(kPidGaugeDefs[i]));
         nav.addScreen(&g_pid_gauges[i]);
         telem.add(&g_pid_gauges[i]);
     }
