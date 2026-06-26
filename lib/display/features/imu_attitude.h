@@ -21,10 +21,14 @@ public:
     bool available() const override { return ready_; }
 
     const ImuAttitude& attitude() const { return attitude_; }
+    /** 初始化失败或未就绪时的简短说明（供 UI / 串口） */
+    const char* statusText() const { return status_; }
 
 private:
     bool ready_ = false;
+    uint8_t i2c_addr_ = 0;
     ImuAttitude attitude_{};
+    char status_[48] = "IMU: not ready";
 };
 
 }  // namespace disp

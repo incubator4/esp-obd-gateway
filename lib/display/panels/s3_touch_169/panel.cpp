@@ -3,15 +3,46 @@
 #include "config_link.h"
 
 #include <Arduino.h>
+#include <Arduino_GFX_Library.h>
 #include <Wire.h>
+#include <lvgl.h>
 
 namespace disp {
 
+namespace {
+
+Arduino_DataBus* g_bus = nullptr;
+Arduino_GFX* g_gfx = nullptr;
+
+constexpr uint32_t kBootDebounceMs = 30;
+
+void enableBoardPower() {
+    pinMode(DISP_S3_SYS_EN, OUTPUT);
+    digitalWrite(DISP_S3_SYS_EN, HIGH);
+}
+
+}  // namespace
+
 bool S3Touch169Panel::begin() {
-    // TODO: ST7789 init (DISP_S3_LCD_*)
+    enableBoardPower();
+
     pinMode(DISP_S3_LCD_BL, OUTPUT);
+    digitalWrite(DISP_S3_LCD_BL, HIGH);
+
+    g_bus = new Arduino_ESP32SPI(DISP_S3_LCD_DC, DISP_S3_LCD_CS, DISP_S3_LCD_CLK,
+                                 DISP_S3_LCD_MOSI);
+    g_gfx = new Arduino_ST7789(g_bus, DISP_S3_LCD_RST, 0, true, DISP_S3_HOR_RES,
+                               DISP_S3_VER_RES, 0, 20, 0, 0);
+
+    if (g_gfx == nullptr || !g_gfx->begin()) {
+        Serial.println("[S3] ST7789 init failed");
+        return false;
+    }
+
+    g_gfx->fillScreen(RGB565_BLACK);
     setBacklight(80);
     running_ = true;
+    Serial.println("[S3] ST7789 ready");
     return true;
 }
 
@@ -23,21 +54,45 @@ void S3Touch169Panel::setBacklight(uint8_t percent) {
     if (percent > 100) {
         percent = 100;
     }
-    const uint8_t level = static_cast<uint8_t>((percent * 255U) / 100U);
-    analogWrite(DISP_S3_LCD_BL, level);
+    pinMode(DISP_S3_LCD_BL, OUTPUT);
+    if (percent == 0) {
+        digitalWrite(DISP_S3_LCD_BL, LOW);
+        return;
+    }
+    if (percent >= 100) {
+        digitalWrite(DISP_S3_LCD_BL, HIGH);
+        return;
+    }
+    static bool attached = false;
+    if (!attached) {
+        ledcAttach(DISP_S3_LCD_BL, 5000, 8);
+        attached = true;
+    }
+    ledcWrite(DISP_S3_LCD_BL, static_cast<uint32_t>((percent * 255U) / 100U));
 }
 
 void S3Touch169Panel::flushArea(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
                                  const uint16_t* rgb565) {
-    (void)x1;
-    (void)y1;
-    (void)x2;
-    (void)y2;
-    (void)rgb565;
-    // TODO: blit to ST7789
+    if (!running_ || g_gfx == nullptr || rgb565 == nullptr) {
+        return;
+    }
+
+    const int32_t w = x2 - x1 + 1;
+    const int32_t h = y2 - y1 + 1;
+    if (w <= 0 || h <= 0) {
+        return;
+    }
+
+#if LV_COLOR_16_SWAP
+    g_gfx->draw16bitBeRGBBitmap(x1, y1, const_cast<uint16_t*>(rgb565), w, h);
+#else
+    g_gfx->draw16bitRGBBitmap(x1, y1, const_cast<uint16_t*>(rgb565), w, h);
+#endif
 }
 
 bool S3Touch169Input::begin() {
+    enableBoardPower();
+
     pinMode(DISP_S3_TP_RST, OUTPUT);
     digitalWrite(DISP_S3_TP_RST, LOW);
     delay(10);

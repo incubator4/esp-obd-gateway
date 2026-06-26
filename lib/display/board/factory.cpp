@@ -17,6 +17,8 @@ void registerFeatures(FeatureRegistry& registry) {
     // C6 板暂无板载 IMU 等扩展
 }
 
+ImuAttitudeFeature* imuAttitudeFeature() { return nullptr; }
+
 }  // namespace disp
 
 #elif defined(DISPLAY_BOARD_S3_TOUCH_169)
@@ -37,6 +39,8 @@ void registerFeatures(FeatureRegistry& registry) {
     registry.add(&g_imu);
 }
 
+ImuAttitudeFeature* imuAttitudeFeature() { return &g_imu; }
+
 }  // namespace disp
 
 #else
@@ -46,6 +50,7 @@ namespace disp {
 Panel* createPanel() { return nullptr; }
 Input* createInput() { return nullptr; }
 void registerFeatures(FeatureRegistry&) {}
+ImuAttitudeFeature* imuAttitudeFeature() { return nullptr; }
 
 }  // namespace disp
 

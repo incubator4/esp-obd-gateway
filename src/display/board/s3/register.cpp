@@ -22,6 +22,7 @@ void registerS3Screens(Navigator& nav, const disp::PanelSize& panel_size) {
     g_settings.init(layout, ScreenNavInfo{1, kPages});
     g_rpm.init(layout, ScreenNavInfo{2, kPages});
     g_speed.init(layout, ScreenNavInfo{3, kPages});
+    g_attitude.init(layout, ScreenNavInfo{kPages, kPages});
 
     nav.addScreen(&g_settings);
     nav.addScreen(&g_rpm);
